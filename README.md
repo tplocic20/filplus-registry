@@ -20,6 +20,7 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 
 ## Development Deployment Url
 
-There's a deployment for `develop` branch available in Netlify (https://develop--reliable-salmiakki-0b0256.netlify.app/). Updates to this deployment are triggered by `git push` command on `develop` branch.
+There's a deployment for `develop` branch available in Netlify (https://develop--grand-lily-6ac7c3.netlify.app/). Updates to this deployment are triggered by `git push` command on `develop` branch.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/591fbb01-a21b-402b-9af1-10a4071ee055/deploy-status)](https://app.netlify.com/sites/reliable-salmiakki-0b0256/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/af2318b1-1bde-4385-b78e-d1d0a6bb0b82/deploy-status)](https://app.netlify.com/sites/grand-lily-6ac7c3/deploys)
+
