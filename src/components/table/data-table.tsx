@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -17,10 +17,11 @@ import {
 } from '@/components/ui/table'
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+  columns: Array<ColumnDef<TData, TValue>>
   data: TData[]
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -53,7 +54,7 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {table.getRowModel().rows?.length > 0 ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}

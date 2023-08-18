@@ -1,12 +1,14 @@
 'use client'
-import { DatacapAllocation } from '@/type'
+import { type DatacapAllocation } from '@/type'
 import AppHistoryCard from './cards/AppHistoryCard'
 
 interface ComponentProps {
   datacapAllocations: DatacapAllocation[]
 }
 
-const AppHistory = ({ datacapAllocations }: ComponentProps) => {
+const AppHistory: React.FC<ComponentProps> = ({
+  datacapAllocations,
+}: ComponentProps) => {
   return (
     <div>
       <h2 className="text-3xl font-bold tracking-tight mb-6">

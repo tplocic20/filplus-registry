@@ -7,7 +7,7 @@ import { Github } from 'lucide-react'
 import UserNav from './UserNav'
 import Image from 'next/image'
 
-const Navbar = () => {
+const Navbar: React.FC = () => {
   const session = useSession()
 
   return (
@@ -23,7 +23,7 @@ const Navbar = () => {
 
       <div>
         {session.status !== 'authenticated' ? (
-          <Button onClick={() => signIn('github')}>
+          <Button onClick={() => void signIn('github')}>
             <Github className="mr-2 h-4 w-4" /> Login with Github
           </Button>
         ) : (
