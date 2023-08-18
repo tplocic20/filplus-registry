@@ -16,10 +16,10 @@ import { Search } from 'lucide-react'
 import { useQuery } from 'react-query'
 import { useEffect, useState } from 'react'
 import Fuse from 'fuse.js'
-import { Application } from '@/type'
+import { type Application } from '@/type'
 
-export default function Home() {
-  const { data, isLoading, error } = useQuery({
+export default function Home(): JSX.Element {
+  const { data, isLoading } = useQuery({
     queryKey: ['application'],
     queryFn: getAllApplications,
   })
@@ -28,27 +28,27 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<Application[]>([])
 
   useEffect(() => {
-    if (isLoading || !data) return
+    if (isLoading || data == null) return
 
-    const filteredData =
-      data?.filter(
-        (app) =>
-          filter === 'all' || app.info.application_lifecycle.state === filter,
-      ) || []
+    const filteredData = data?.filter(
+      (app) =>
+        filter === 'all' || app.info.application_lifecycle.state === filter,
+    )
 
-    const fuseOptions = filteredData?.length
-      ? {
-          keys: Object.keys(filteredData[0].info.core_information).map(
-            (key) => `info.core_information.${key}`,
-          ),
-        }
-      : { keys: [] }
+    const fuseOptions =
+      filteredData?.length > 0
+        ? {
+            keys: Object.keys(filteredData[0].info.core_information).map(
+              (key) => `info.core_information.${key}`,
+            ),
+          }
+        : { keys: [] }
 
     const fuse = new Fuse(filteredData, fuseOptions)
     const results = fuse.search(searchTerm)
 
     setSearchResults(
-      searchTerm ? results.map((result) => result.item) : filteredData,
+      searchTerm !== '' ? results.map((result) => result.item) : filteredData,
     )
   }, [searchTerm, filter, data, isLoading])
 
@@ -65,11 +65,17 @@ export default function Home() {
                 type="search"
                 placeholder="Search Application..."
                 className="md:w-[100px] lg:w-[300px] pl-10"
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                }}
               />
             </div>
 
-            <Select onValueChange={(value) => setFilter(value)}>
+            <Select
+              onValueChange={(value) => {
+                setFilter(value)
+              }}
+            >
               <SelectTrigger id="area" className="w-[180px]">
                 <SelectValue placeholder="Filter Applications" />
               </SelectTrigger>
@@ -100,7 +106,7 @@ export default function Home() {
           </div>
         </TabsContent>
         <TabsContent value="table">
-          <DataTable columns={columns} data={searchResults || []} />
+          <DataTable columns={columns} data={searchResults} />
         </TabsContent>
       </Tabs>
     </main>

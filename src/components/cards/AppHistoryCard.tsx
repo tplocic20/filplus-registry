@@ -1,13 +1,13 @@
 'use client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { DatacapAllocation } from '@/type'
+import { type DatacapAllocation } from '@/type'
 
 interface ComponentProps {
   allocation: DatacapAllocation
 }
 
-const AppHistoryCard = ({ allocation }: ComponentProps) => {
+const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -27,7 +27,7 @@ const AppHistoryCard = ({ allocation }: ComponentProps) => {
           <div className="flex items-center justify-between text-sm">
             <div className="text-muted-foreground">signer address</div>
             <div>
-              {allocation.signers.length
+              {allocation.signers.length > 0
                 ? allocation.signers[0].signing_address
                 : 'No signer'}
             </div>

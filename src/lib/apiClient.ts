@@ -1,4 +1,4 @@
-import { Application } from '@/type'
+import { type Application } from '@/type'
 import axios from 'axios'
 
 export const apiClient = axios.create({

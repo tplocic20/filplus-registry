@@ -7,13 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { signOut, useSession } from 'next-auth/react'
-import { CheckCircle2 } from 'lucide-react'
 
-function UserNav() {
+const UserNav: React.FC = () => {
   const session = useSession()
 
   const user = session.data?.user
@@ -23,7 +21,7 @@ function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.image || ''} alt="@shadcn" />
+            <AvatarImage src={user?.image ?? ''} alt="@shadcn" />
             <AvatarFallback>SC</AvatarFallback>
           </Avatar>
         </Button>
@@ -43,7 +41,9 @@ function UserNav() {
           <DropdownMenuItem>Get Verified</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => void signOut()}>
+          Log out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
