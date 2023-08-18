@@ -1,14 +1,14 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { CoreInformation } from '@/type'
+import { type CoreInformation } from '@/type'
 import React from 'react'
 
 interface ComponentProps {
   coreInformation: CoreInformation
 }
 
-const AppInfoCard = ({ coreInformation }: ComponentProps) => {
+const AppInfoCard: React.FC<ComponentProps> = ({ coreInformation }) => {
   return (
     <div>
       <Card>

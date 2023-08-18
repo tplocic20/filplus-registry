@@ -1,11 +1,11 @@
 'use client'
 
-import { Application } from '@/type'
-import { ColumnDef } from '@tanstack/react-table'
+import { type Application } from '@/type'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 
-export const columns: ColumnDef<Application>[] = [
+export const columns: Array<ColumnDef<Application>> = [
   {
     accessorKey: 'info.core_information.data_owner_name',
     header: 'Data Owner Name',

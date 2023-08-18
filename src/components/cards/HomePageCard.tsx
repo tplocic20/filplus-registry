@@ -1,4 +1,4 @@
-import { Application } from '@/type'
+import { type Application } from '@/type'
 import Link from 'next/link'
 import React from 'react'
 import { Button } from '../ui/button'
@@ -8,7 +8,7 @@ interface Props {
   application: Application
 }
 
-const HomePageCard = ({ application }: Props) => {
+const HomePageCard: React.FC<Props> = ({ application }) => {
   return (
     <Card>
       <CardHeader></CardHeader>
