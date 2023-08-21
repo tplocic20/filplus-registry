@@ -2,7 +2,7 @@ import { type Application } from '@/type'
 import axios from 'axios'
 
 export const apiClient = axios.create({
-  baseURL: 'https://fp-core.6omfj573u6naa.us-east-2.cs.amazonlightsail.com/',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 })
 
 // get all applications
