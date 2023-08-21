@@ -27,7 +27,7 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-10 mt-10">
         <AppHistory datacapAllocations={data.info.datacap_allocations} />
-        <AppInfo coreInformation={data.info.core_information} />
+        <AppInfo application={data} />
       </div>
     )
 }
