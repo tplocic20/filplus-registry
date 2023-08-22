@@ -1,4 +1,4 @@
-import { type Application, type Signer } from '@/type'
+import { type Application } from '@/type'
 import axios from 'axios'
 
 /**
@@ -20,7 +20,7 @@ export const getAllApplications = async (): Promise<
     const { data } = await apiClient.get('application')
     return data
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -37,7 +37,7 @@ export const getApplicationById = async (
     const { data } = await apiClient.get(`application/${id}`)
     return data
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -57,7 +57,7 @@ export const postApplicationTrigger = async (
     })
     return data
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -70,7 +70,7 @@ export const postApplicationTrigger = async (
 export const postApplicationProposal = async (
   id: string,
   requestId: string,
-): Promise<Signer | undefined> => {
+): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/propose`, {
       request_id: requestId,
@@ -82,7 +82,7 @@ export const postApplicationProposal = async (
     })
     return data
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -95,7 +95,7 @@ export const postApplicationProposal = async (
 export const postApplicationApproval = async (
   id: string,
   requestId: string,
-): Promise<Signer | undefined> => {
+): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/approve`, {
       request_id: requestId,
@@ -107,6 +107,6 @@ export const postApplicationApproval = async (
     })
     return data
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }

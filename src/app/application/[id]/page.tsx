@@ -2,7 +2,7 @@
 import AppHistory from '@/components/AppHistory'
 import AppInfo from '@/components/AppInfo'
 import { getApplicationById } from '@/lib/apiClient'
-import React from 'react'
+import { useEffect } from 'react'
 import { useQuery } from 'react-query'
 
 interface ComponentProps {

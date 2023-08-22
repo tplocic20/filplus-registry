@@ -1,30 +1,34 @@
-'use client'
+// AppInfoCard.tsx
+
 import { useEffect, useState } from 'react'
-import { useQueryClient } from 'react-query'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { type Application } from '@/type'
-import {
-  postApplicationTrigger,
-  postApplicationProposal,
-  postApplicationApproval,
-} from '@/lib/apiClient'
-
 import { useSession } from 'next-auth/react'
+import useApplicationActions from '@/hooks/useApplicationActions'
 
 interface ComponentProps {
   application: Application
 }
 
-const AppInfoCard: React.FC<ComponentProps> = ({ application }) => {
+const AppInfoCard: React.FC<ComponentProps> = ({
+  application: initialApplication,
+}) => {
   const session = useSession()
-  const queryClient = useQueryClient()
-  const [isApiCalling, setApiCalling] = useState(false)
+  const {
+    application,
+    isApiCalling,
+    setApiCalling,
+    mutationTrigger,
+    mutationProposal,
+    mutationApproval,
+  } = useApplicationActions(initialApplication)
   const [buttonText, setButtonText] = useState('')
 
   useEffect(() => {
     if (isApiCalling) {
-      setButtonText('Procesando...')
+      setButtonText('Processing...')
       return
     }
 
@@ -46,55 +50,46 @@ const AppInfoCard: React.FC<ComponentProps> = ({ application }) => {
     }
   }, [application.info.application_lifecycle.state, isApiCalling])
 
-  console.log(application)
-
-  const userName = session.data?.user?.name
-  if (userName != null) {
-    console.log(userName)
-  }
-
-  const requestId = application.info.datacap_allocations.find(
-    (alloc) => alloc.request_information.is_active,
-  )?.request_information.request_id
-
   const handleButtonClick = async (): Promise<void> => {
     setApiCalling(true)
+    const requestId = application.info.datacap_allocations.find(
+      (alloc) => alloc.request_information.is_active,
+    )?.request_information.request_id
+
+    const userName = session.data?.user?.name
+
     try {
       switch (application.info.application_lifecycle.state) {
         case 'GovernanceReview':
           if (userName != null) {
-            await postApplicationTrigger(application.id, userName)
-          } else {
-            console.warn('Actor (GitHub id) is not provided.')
+            mutationTrigger.mutate(userName)
           }
           break
         case 'Proposal':
-          if (requestId == null) throw new Error('Request ID is not provided.')
-          await postApplicationProposal(application.id, requestId)
+          if (requestId != null) {
+            mutationProposal.mutate(requestId)
+          }
           break
         case 'Approval':
-          if (requestId == null) throw new Error('Request ID is not provided.')
-          await postApplicationApproval(application.id, requestId)
+          if (requestId != null) {
+            mutationApproval.mutate(requestId)
+          }
           break
         default:
-          console.warn(
-            'Unknown application lifecycle state:',
-            application.info.application_lifecycle.state,
-          )
+          console.warn('Unknown state')
       }
-      await queryClient.invalidateQueries(['application'])
-      await queryClient.refetchQueries(['application'])
-
-      // Handle or display the 'result' if needed.
     } catch (error) {
-      console.error('Error handling button click:', error)
-    } finally {
-      setApiCalling(false) // <-- Luego de completar la llamada a la API
+      console.error(error)
     }
   }
 
   return (
     <div>
+      {isApiCalling && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <Spinner />
+        </div>
+      )}
       <Card>
         <CardHeader></CardHeader>
         <CardContent className="grid gap-4 text-sm">
@@ -128,11 +123,16 @@ const AppInfoCard: React.FC<ComponentProps> = ({ application }) => {
               {application.info.core_information.social_media}
             </p>
           </div>
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground">Status</p>
+            <p className="font-medium leading-none">
+              {application.info.application_lifecycle.state}
+            </p>
+          </div>
         </CardContent>
         {application.info.application_lifecycle.state !== 'Confirmed' && (
           <CardFooter className="flex">
             <Button
-              className="w-full"
               onClick={() => void handleButtonClick()}
               disabled={isApiCalling}
             >
