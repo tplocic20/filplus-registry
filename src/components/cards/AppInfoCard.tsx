@@ -12,6 +12,14 @@ interface ComponentProps {
   application: Application
 }
 
+/**
+ * Represents an information card for a specific application.
+ * Provides buttons to interact with the application.
+ *
+ * @component
+ * @prop {Application} initialApplication - The initial data for the application.
+ * @prop {UseSession} session - User session data.
+ */
 const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
 }) => {
@@ -50,6 +58,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
   }, [application.info.application_lifecycle.state, isApiCalling])
 
+  /**
+   * Handles the button click event.
+   * Depending on the application status, it triggers a respective API action.
+   */
   const handleButtonClick = async (): Promise<void> => {
     setApiCalling(true)
     const requestId = application.info.datacap_allocations.find(

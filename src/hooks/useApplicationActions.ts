@@ -37,6 +37,15 @@ interface ApplicationActions {
   >
 }
 
+/**
+ * Custom hook to manage application actions and its respective states.
+ * Provides mutation functions to interact with the API based on application ID.
+ * Manages the state of the current application data, as well as any ongoing API calls.
+ *
+ * @function
+ * @param {Application} initialApplication - The initial application data.
+ * @returns {ApplicationActions} - An object containing the current application, its API call state, and mutation functions.
+ */
 const useApplicationActions = (
   initialApplication: Application,
 ): ApplicationActions => {
@@ -45,6 +54,13 @@ const useApplicationActions = (
   const [application, setApplication] =
     useState<Application>(initialApplication)
 
+  /**
+   * Updates the application cache with the latest data from the API.
+   * Updates both the local application state and the react-query cache.
+   *
+   * @function
+   * @param {Application|null} apiResponse - The latest application data from the API.
+   */
   const updateCache = (apiResponse: Application | null): void => {
     if (apiResponse == null) return
     setApplication(apiResponse)
@@ -68,6 +84,14 @@ const useApplicationActions = (
     })
   }
 
+  /**
+   * Mutation function to handle the triggering of an application.
+   * It makes an API call to trigger the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
   const mutationTrigger = useMutation<
     Application | undefined,
     unknown,
@@ -87,6 +111,14 @@ const useApplicationActions = (
     },
   )
 
+  /**
+   * Mutation function to handle the proposal of an application.
+   * It makes an API call to propose the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} requestId - The request ID associated with the proposal.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
   const mutationProposal = useMutation<
     Application | undefined,
     unknown,
@@ -106,6 +138,14 @@ const useApplicationActions = (
     },
   )
 
+  /**
+   * Mutation function to handle the approval of an application.
+   * It makes an API call to approve the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} requestId - The request ID associated with the approval.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
   const mutationApproval = useMutation<
     Application | undefined,
     unknown,
