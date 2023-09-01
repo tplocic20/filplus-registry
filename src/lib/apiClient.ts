@@ -45,6 +45,7 @@ export const getApplicationById = async (
  * Triggers a LDN application based on its ID.
  *
  * @param id - The ID of the application to trigger.
+ * @param actor - The actor that triggers the application.
  * @returns A promise that resolves with the application data after the trigger or undefined if there's an error.
  */
 export const postApplicationTrigger = async (
@@ -65,6 +66,7 @@ export const postApplicationTrigger = async (
  * Proposes a LDN application based on its ID.
  *
  * @param id - The ID of the application to propose.
+ * @param requestId - The id of the request to send.
  * @returns A promise that resolves with the application data after the trigger or undefined if there's an error.
  */
 export const postApplicationProposal = async (
@@ -90,6 +92,7 @@ export const postApplicationProposal = async (
  * Approves a LDN application based on its ID.
  *
  * @param id - The ID of the application to approve.
+ * @param requestId - The id of the request to send.
  * @returns A promise that resolves with the application data after the trigger or undefined if there's an error.
  */
 export const postApplicationApproval = async (
