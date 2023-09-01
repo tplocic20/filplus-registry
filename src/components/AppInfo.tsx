@@ -1,21 +1,19 @@
 'use client'
-import { type CoreInformation } from '@/type'
+import { type Application } from '@/type'
 import React from 'react'
 import AppInfoCard from './cards/AppInfoCard'
 
 interface ComponentProps {
-  coreInformation: CoreInformation
+  application: Application
 }
 
-const AppInfo: React.FC<ComponentProps> = ({
-  coreInformation,
-}: ComponentProps) => {
+const AppInfo: React.FC<ComponentProps> = ({ application }: ComponentProps) => {
   return (
     <div>
       <h2 className="text-3xl font-bold tracking-tight mb-6">
         Application Info
       </h2>
-      <AppInfoCard coreInformation={coreInformation} />
+      <AppInfoCard application={application} />
     </div>
   )
 }

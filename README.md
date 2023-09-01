@@ -18,17 +18,9 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+## Development Deployment Url
 
-To learn more about Next.js, take a look at the following resources:
+There's a deployment for `develop` branch available in Netlify (https://develop--grand-lily-6ac7c3.netlify.app/). Updates to this deployment are triggered by `git push` command on `develop` branch.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/af2318b1-1bde-4385-b78e-d1d0a6bb0b82/deploy-status)](https://app.netlify.com/sites/grand-lily-6ac7c3/deploys)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
