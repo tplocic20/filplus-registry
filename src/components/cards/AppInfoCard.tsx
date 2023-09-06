@@ -56,7 +56,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       default:
         setButtonText('')
     }
-  }, [application.info.application_lifecycle.state, isApiCalling])
+  }, [application.info.application_lifecycle.state, isApiCalling, session])
 
   /**
    * Handles the button click event.
@@ -68,7 +68,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       (alloc) => alloc.request_information.is_active,
     )?.request_information.request_id
 
-    const userName = session.data?.user?.name
+    const userName = session.data?.user?.githubUsername
 
     try {
       switch (application.info.application_lifecycle.state) {
@@ -78,13 +78,13 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           }
           break
         case 'Proposal':
-          if (requestId != null) {
-            mutationProposal.mutate(requestId)
+          if (requestId != null && userName != null) {
+            mutationProposal.mutate({ requestId, userName })
           }
           break
         case 'Approval':
-          if (requestId != null) {
-            mutationApproval.mutate(requestId)
+          if (requestId != null && userName != null) {
+            mutationApproval.mutate({ requestId, userName })
           }
           break
         default:
@@ -142,16 +142,17 @@ const AppInfoCard: React.FC<ComponentProps> = ({
             </p>
           </div>
         </CardContent>
-        {application.info.application_lifecycle.state !== 'Confirmed' && (
-          <CardFooter className="flex">
-            <Button
-              onClick={() => void handleButtonClick()}
-              disabled={isApiCalling}
-            >
-              {buttonText}
-            </Button>
-          </CardFooter>
-        )}
+        {application.info.application_lifecycle.state !== 'Confirmed' &&
+          session?.data?.user?.name !== undefined && (
+            <CardFooter className="flex">
+              <Button
+                onClick={() => void handleButtonClick()}
+                disabled={isApiCalling}
+              >
+                {buttonText}
+              </Button>
+            </CardFooter>
+          )}
       </Card>
     </div>
   )

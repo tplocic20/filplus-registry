@@ -1,5 +1,3 @@
-// hooks/useApplicationActions.ts
-
 import { useState } from 'react'
 import {
   useQueryClient,
@@ -26,13 +24,13 @@ interface ApplicationActions {
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >
   mutationApproval: UseMutationResult<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >
 }
@@ -122,11 +120,11 @@ const useApplicationActions = (
   const mutationProposal = useMutation<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >(
-    async (requestId: string) =>
-      await postApplicationProposal(initialApplication.id, requestId),
+    async ({ requestId, userName }) =>
+      await postApplicationProposal(initialApplication.id, requestId, userName),
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -149,11 +147,11 @@ const useApplicationActions = (
   const mutationApproval = useMutation<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >(
-    async (requestId: string) =>
-      await postApplicationApproval(initialApplication.id, requestId),
+    async ({ requestId, userName }) =>
+      await postApplicationApproval(initialApplication.id, requestId, userName),
     {
       onSuccess: (data) => {
         setApiCalling(false)
