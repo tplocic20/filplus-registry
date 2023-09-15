@@ -2,7 +2,7 @@ import Navbar from '@/components/Navbar'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
-import ReactQueryProvider from '@/components/ReactQueryProvider'
+import ReactQueryProvider from '@/context/ReactQueryProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 

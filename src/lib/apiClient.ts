@@ -1,6 +1,5 @@
 import { type Application } from '@/type'
 import axios from 'axios'
-import { get } from 'http'
 import { getCurrentDate } from './utils'
 
 /**
@@ -75,15 +74,17 @@ export const postApplicationProposal = async (
   id: string,
   requestId: string,
   userName: string,
+  address: string,
+  signature: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/propose`, {
       request_id: requestId,
       signer: {
-        signing_address: '',
+        signing_address: address,
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
         time_of_signature: getCurrentDate(),
-        message_cid: '',
+        message_cid: signature,
         signer: userName,
       },
     })
@@ -104,14 +105,16 @@ export const postApplicationApproval = async (
   id: string,
   requestId: string,
   userName: string,
+  address: string,
+  signature: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/approve`, {
       request_id: requestId,
       signer: {
-        signing_address: '',
+        signing_address: address,
         time_of_signature: getCurrentDate(),
-        message_cid: '',
+        message_cid: signature,
         signer: userName,
       },
     })

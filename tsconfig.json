@@ -29,7 +29,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/api/auth/[...nextauth]",
-    ".eslintrc.js"
+    ".eslintrc.js",
+    "next.config.js"
   ],
   "exclude": ["node_modules"]
 }

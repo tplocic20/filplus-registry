@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   useQueryClient,
   useMutation,
@@ -9,6 +9,7 @@ import {
   postApplicationProposal,
   postApplicationApproval,
 } from '@/lib/apiClient'
+import useWallet from '@/hooks/useWallet'
 import { type Application } from '@/type'
 
 interface ApplicationActions {
@@ -51,7 +52,17 @@ const useApplicationActions = (
   const [isApiCalling, setApiCalling] = useState(false)
   const [application, setApplication] =
     useState<Application>(initialApplication)
+  const {
+    initializeWallet,
+    activeAddress,
+    getProposalTx,
+    sendProposal,
+    sendApproval,
+  } = useWallet()
 
+  useEffect(() => {
+    void initializeWallet()
+  }, [initializeWallet])
   /**
    * Updates the application cache with the latest data from the API.
    * Updates both the local application state and the react-query cache.
@@ -123,8 +134,41 @@ const useApplicationActions = (
     { requestId: string; userName: string },
     unknown
   >(
-    async ({ requestId, userName }) =>
-      await postApplicationProposal(initialApplication.id, requestId, userName),
+    async ({ requestId, userName }) => {
+      // TODO: Replace test values with actual values from application
+      const multisigAddress = 't01000'
+      const clientAddress = 't01001'
+      const datacap = '1PiB'
+      const walletIndex = 0
+
+      const proposalTx = await getProposalTx(
+        multisigAddress,
+        clientAddress,
+        datacap,
+      )
+      if (proposalTx !== false) {
+        throw new Error('Already proposed')
+      }
+
+      const messageCID = await sendProposal(
+        multisigAddress,
+        clientAddress,
+        datacap,
+        walletIndex,
+      )
+
+      if (messageCID == null) {
+        throw new Error('Error sending proposal')
+      }
+
+      return await postApplicationProposal(
+        initialApplication.id,
+        requestId,
+        userName,
+        activeAddress,
+        messageCID,
+      )
+    },
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -150,8 +194,35 @@ const useApplicationActions = (
     { requestId: string; userName: string },
     unknown
   >(
-    async ({ requestId, userName }) =>
-      await postApplicationApproval(initialApplication.id, requestId, userName),
+    async ({ requestId, userName }) => {
+      const multisigAddress = 't01000'
+      const clientAddress = 't01001'
+      const datacap = '1PiB'
+
+      const proposalTx = await getProposalTx(
+        multisigAddress,
+        clientAddress,
+        datacap,
+      )
+
+      if (proposalTx === false) {
+        throw new Error('No proposal found')
+      }
+
+      const messageCID = await sendApproval(
+        multisigAddress,
+        proposalTx as string,
+        0,
+      )
+
+      return await postApplicationApproval(
+        initialApplication.id,
+        requestId,
+        userName,
+        activeAddress,
+        messageCID,
+      )
+    },
     {
       onSuccess: (data) => {
         setApiCalling(false)

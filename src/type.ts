@@ -50,3 +50,27 @@ export interface Signer {
   time_of_signature: string
   signer: string
 }
+
+export interface IWallet {
+  loadWallet: (networkIndex: number) => Promise<void>
+  selectNetwork: (nodeIndex: number) => Promise<this>
+  getAccounts: (nStart?: number) => Promise<string[]>
+  sign: (filecoinMessage: any, indexAccount: number) => Promise<any>
+  api: any
+}
+
+export interface ConfigLotusNode {
+  name: string
+  code: number
+  url: string
+  token: string | undefined
+  notaryRepo: string
+  notaryOwner: string
+  rkhMultisig: string
+  rkhtreshold: number
+  largeClientRequestAssign: string[]
+}
+
+export interface API {
+  actorAddress: (account: string) => Promise<string>
+}
