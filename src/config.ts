@@ -4,19 +4,19 @@ const localConfig = {
   lotusNodes: [
     {
       name: 'Localhost',
-      code: 1,
-      url: 'wss://lotus.filecoin.nevermined.rocks/rpc/v0',
-      token: process.env.LOCAL_NODE_TOKEN,
+      code: 461,
+      url: process.env.NEXT_PUBLIC_LOCAL_NODE_ADDRESS,
+      token: process.env.NEXT_PUBLIC_LOCAL_NODE_TOKEN,
       notaryRepo: 'filecoin-notaries-onboarding',
       notaryOwner: 'keyko-io',
-      rkhMultisig: 't080',
+      rkhMultisig: 'f080',
       rkhtreshold: 1,
-      largeClientRequestAssign: ['clriesco', 'huseyincansoylu'],
+      largeClientRequestAssign: ['clriesco'],
     },
   ],
   dev_mode: process.env.NEXT_PUBLIC_MODE,
   numberOfWalletAccounts: 20,
-  mnemonic: process.env.MNEMONIC,
+  mnemonic: process.env.NEXT_PUBLIC_MNEMONIC,
   walletClass: 'BurnerWallet',
 }
 
@@ -38,7 +38,7 @@ const prodConfig = {
   ],
   dev_mode: process.env.NEXT_PUBLIC_MODE,
   numberOfWalletAccounts: 20,
-  mnemonic: '',
+  mnemonic: process.env.MNEMONIC,
   walletClass: 'BurnerWallet',
 }
 

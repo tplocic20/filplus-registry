@@ -38,6 +38,6 @@ export abstract class BaseWallet implements IWallet {
    * @returns
    */
   protected getBIP44Path(index: number): string {
-    return `m/44'/${this.lotusNode.code}'/0/0/${index}`
+    return `m/44'/${this.lotusNode.code}'/0'/0/${index}`
   }
 }

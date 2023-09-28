@@ -62,7 +62,7 @@ export interface IWallet {
 export interface ConfigLotusNode {
   name: string
   code: number
-  url: string
+  url: string | undefined
   token: string | undefined
   notaryRepo: string
   notaryOwner: string

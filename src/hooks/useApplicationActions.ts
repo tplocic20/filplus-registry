@@ -130,35 +130,26 @@ const useApplicationActions = (
    */
   const mutationProposal = useMutation<
     Application | undefined,
-    unknown,
+    Error,
     { requestId: string; userName: string },
     unknown
   >(
     async ({ requestId, userName }) => {
       // TODO: Replace test values with actual values from application
-      const multisigAddress = 't01000'
       const clientAddress = 't01001'
       const datacap = '1PiB'
-      const walletIndex = 0
 
-      const proposalTx = await getProposalTx(
-        multisigAddress,
-        clientAddress,
-        datacap,
-      )
+      const proposalTx = await getProposalTx(clientAddress, datacap)
       if (proposalTx !== false) {
-        throw new Error('Already proposed')
+        throw new Error('This datacap allocation is already proposed')
       }
 
-      const messageCID = await sendProposal(
-        multisigAddress,
-        clientAddress,
-        datacap,
-        walletIndex,
-      )
+      const messageCID = await sendProposal(clientAddress, datacap)
 
       if (messageCID == null) {
-        throw new Error('Error sending proposal')
+        throw new Error(
+          'Error sending proposal. Please try again or contact support.',
+        )
       }
 
       return await postApplicationProposal(
@@ -190,30 +181,29 @@ const useApplicationActions = (
    */
   const mutationApproval = useMutation<
     Application | undefined,
-    unknown,
+    Error,
     { requestId: string; userName: string },
     unknown
   >(
     async ({ requestId, userName }) => {
-      const multisigAddress = 't01000'
       const clientAddress = 't01001'
       const datacap = '1PiB'
 
-      const proposalTx = await getProposalTx(
-        multisigAddress,
-        clientAddress,
-        datacap,
-      )
+      const proposalTx = await getProposalTx(clientAddress, datacap)
 
       if (proposalTx === false) {
-        throw new Error('No proposal found')
+        throw new Error(
+          'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
+        )
       }
 
-      const messageCID = await sendApproval(
-        multisigAddress,
-        proposalTx as string,
-        0,
-      )
+      const messageCID = await sendApproval(proposalTx as string)
+
+      if (messageCID == null) {
+        throw new Error(
+          'Error sending proposal. Please try again or contact support.',
+        )
+      }
 
       return await postApplicationApproval(
         initialApplication.id,

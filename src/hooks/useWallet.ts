@@ -13,8 +13,8 @@ import { anyToBytes } from '@/lib/utils'
  * Registry that maps wallet class names to their respective classes.
  */
 const walletClassRegistry: Record<string, any> = {
-  LedgerWallet,
-  BurnerWallet,
+  LedgerWallet: (arg: any) => new LedgerWallet(arg),
+  BurnerWallet: (arg: any) => new BurnerWallet(arg),
 }
 
 /**
@@ -27,21 +27,11 @@ interface WalletState {
   setActiveAccountIndex: (index: number) => void
   activeAddress: string
   getProposalTx: (
-    multisigAddress: string,
     clientAddress: string,
     datacap: string,
   ) => Promise<string | boolean>
-  sendProposal: (
-    multisigAddress: string,
-    clientAddress: string,
-    datacap: string,
-    walletIndex: number,
-  ) => Promise<string>
-  sendApproval: (
-    multisigAddress: string,
-    txHash: string,
-    walletIndex: number,
-  ) => Promise<string>
+  sendProposal: (clientAddress: string, datacap: string) => Promise<string>
+  sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
   initializeWallet: () => Promise<void>
 }
@@ -56,6 +46,7 @@ const useWallet = (): WalletState => {
   const [wallet, setWallet] = useState<IWallet | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [accounts, setAccounts] = useState<string[]>([])
+  const [multisigAddress, setMultisigAddress] = useState<string>('')
   const [activeAccountIndex, setActiveAccountIndexState] = useState<number>(0)
 
   /**
@@ -101,17 +92,18 @@ const useWallet = (): WalletState => {
     try {
       const walletClass: string = config.walletClass
       const networkIndex = initNetworkIndex()
-      const newWallet = new walletClassRegistry[walletClass](networkIndex)
+      const newWallet = walletClassRegistry[walletClass](networkIndex)
       await newWallet.loadWallet()
 
       const allAccounts = await newWallet.getAccounts()
 
       if (allAccounts.length > 0) {
-        setActiveAccountIndexState(0)
+        setActiveAccountIndexState(1)
         setAccounts(allAccounts)
       }
 
       setWallet(newWallet)
+      setMultisigAddress(newWallet.lotusNode.rkhMultisig)
     } catch (err) {
       console.error('Error initializing wallet:', err)
       if (err instanceof Error) {
@@ -149,22 +141,22 @@ const useWallet = (): WalletState => {
    */
   const getProposalTx = useCallback(
     async (
-      multisigAddress: string,
       clientAddress: string,
       datacap: string,
     ): Promise<string | boolean> => {
       if (wallet == null) throw new Error('No wallet initialized.')
+      if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = anyToBytes(datacap)
       const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
       const pendingForClient = pendingTxs?.filter(
         (tx: any) =>
           tx?.parsed?.params?.address === clientAddress &&
-          tx?.parsed?.params?.cap === bytesDatacap,
+          tx?.parsed?.params?.cap === BigInt(bytesDatacap),
       )
       return pendingForClient.length > 0 ? pendingForClient.at(-1) : false
     },
-    [wallet],
+    [wallet, multisigAddress],
   )
 
   /**
@@ -173,29 +165,24 @@ const useWallet = (): WalletState => {
    * @param {string} multisigAddress - The address of the multisig wallet.
    * @param {string} clientAddress - The address of the client.
    * @param {string} datacap - The datacap to be allocated.
-   * @param {number} walletIndex - The index of the wallet to use.
    * @returns {Promise<string>} - A promise that resolves with the message CID.
    * @throws {Error} - Throws an error if no wallet is initialized.
    */
   const sendProposal = useCallback(
-    async (
-      multisigAddress: string,
-      clientAddress: string,
-      datacap: string,
-      walletIndex: number,
-    ): Promise<string> => {
+    async (clientAddress: string, datacap: string): Promise<string> => {
       if (wallet == null) throw new Error('No wallet initialized.')
+      if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = anyToBytes(datacap)
       const messageCID = await wallet.api.multisigVerifyClient(
         multisigAddress,
         clientAddress,
         BigInt(bytesDatacap),
-        walletIndex,
+        activeAccountIndex,
       )
       return messageCID
     },
-    [wallet],
+    [wallet, multisigAddress, activeAccountIndex],
   )
 
   /**
@@ -203,25 +190,21 @@ const useWallet = (): WalletState => {
    *
    * @param {string} multisigAddress - The address of the multisig wallet.
    * @param {string} txHash - The hash of the transaction to approve.
-   * @param {number} walletIndex - The index of the wallet to use.
    * @returns {Promise<string>} - A promise that resolves with the message CID.
    * @throws {Error} - Throws an error if no wallet is initialized.
    */
   const sendApproval = useCallback(
-    async (
-      multisigAddress: string,
-      txHash: string,
-      walletIndex: number,
-    ): Promise<string> => {
+    async (txHash: string): Promise<string> => {
       if (wallet == null) throw new Error('No wallet initialized.')
+      if (multisigAddress == null) throw new Error('Multisig address not set.')
       const messageCID = await wallet.api.approvePending(
         multisigAddress,
         txHash,
-        walletIndex,
+        activeAccountIndex,
       )
       return messageCID
     },
-    [wallet],
+    [wallet, multisigAddress, activeAccountIndex],
   )
 
   const activeAddress = accounts[activeAccountIndex] ?? ''
