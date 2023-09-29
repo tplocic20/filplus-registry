@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { ErrorModal } from '@/components/ui/error-modal'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { type Application } from '@/type'
 import { useSession } from 'next-auth/react'
@@ -33,7 +34,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     mutationApproval,
   } = useApplicationActions(initialApplication)
   const [buttonText, setButtonText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
+  const handleMutationError = (error: Error): void => {
+    setError(error.message)
+  }
   useEffect(() => {
     if (isApiCalling) {
       setButtonText('Processing...')
@@ -56,7 +61,14 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       default:
         setButtonText('')
     }
-  }, [application.info.application_lifecycle.state, isApiCalling])
+  }, [application.info.application_lifecycle.state, isApiCalling, session])
+
+  /**
+   * Handles the modal close event.
+   */
+  const handleCloseModal = (): void => {
+    setError(null)
+  }
 
   /**
    * Handles the button click event.
@@ -68,35 +80,38 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       (alloc) => alloc.request_information.is_active,
     )?.request_information.request_id
 
-    const userName = session.data?.user?.name
+    const userName = session.data?.user?.githubUsername
 
     try {
       switch (application.info.application_lifecycle.state) {
         case 'GovernanceReview':
           if (userName != null) {
-            mutationTrigger.mutate(userName)
+            await mutationTrigger.mutateAsync(userName)
           }
           break
         case 'Proposal':
-          if (requestId != null) {
-            mutationProposal.mutate(requestId)
+          if (requestId != null && userName != null) {
+            await mutationProposal.mutateAsync({ requestId, userName })
           }
           break
         case 'Approval':
-          if (requestId != null) {
-            mutationApproval.mutate(requestId)
+          if (requestId != null && userName != null) {
+            await mutationApproval.mutateAsync({ requestId, userName })
           }
           break
         default:
           console.warn('Unknown state')
       }
     } catch (error) {
-      console.error(error)
+      handleMutationError(error as Error)
     }
   }
 
   return (
     <div>
+      {error !== null && (
+        <ErrorModal message={error} onClose={handleCloseModal} />
+      )}
       {isApiCalling && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <Spinner />
@@ -142,16 +157,17 @@ const AppInfoCard: React.FC<ComponentProps> = ({
             </p>
           </div>
         </CardContent>
-        {application.info.application_lifecycle.state !== 'Confirmed' && (
-          <CardFooter className="flex">
-            <Button
-              onClick={() => void handleButtonClick()}
-              disabled={isApiCalling}
-            >
-              {buttonText}
-            </Button>
-          </CardFooter>
-        )}
+        {application.info.application_lifecycle.state !== 'Confirmed' &&
+          session?.data?.user?.name !== undefined && (
+            <CardFooter className="flex">
+              <Button
+                onClick={() => void handleButtonClick()}
+                disabled={isApiCalling}
+              >
+                {buttonText}
+              </Button>
+            </CardFooter>
+          )}
       </Card>
     </div>
   )
