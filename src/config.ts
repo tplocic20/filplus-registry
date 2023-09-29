@@ -5,8 +5,8 @@ const localConfig = {
     {
       name: 'Localhost',
       code: 461,
-      url: process.env.NEXT_PUBLIC_LOCAL_NODE_ADDRESS,
-      token: process.env.NEXT_PUBLIC_LOCAL_NODE_TOKEN,
+      url: process.env.NEXT_PUBLIC_NODE_ADDRESS,
+      token: process.env.NEXT_PUBLIC_NODE_TOKEN,
       notaryRepo: 'filecoin-notaries-onboarding',
       notaryOwner: 'keyko-io',
       rkhMultisig: 'f080',
@@ -27,8 +27,8 @@ const prodConfig = {
     {
       name: 'Mainnet',
       code: 461,
-      url: 'https://node.glif.io/space06/lotus/rpc/v1',
-      token: process.env.MAINNET_TOKEN,
+      url: process.env.NEXT_PUBLIC_NODE_ADDRESS,
+      token: process.env.NEXT_PUBLIC_NODE_TOKEN,
       notaryRepo: 'notary-governance',
       notaryOwner: 'filecoin-project',
       rkhMultisig: 'f080',
@@ -39,8 +39,8 @@ const prodConfig = {
   dev_mode: process.env.NEXT_PUBLIC_MODE,
   numberOfWalletAccounts: 20,
   mnemonic: process.env.MNEMONIC,
-  walletClass: 'BurnerWallet',
+  walletClass: 'LedgerWallet',
 }
 
 export const config =
-  process.env.NEXT_PUBLIC_MODE !== 'Production' ? localConfig : prodConfig
+  process.env.NEXT_PUBLIC_MODE !== 'production' ? localConfig : prodConfig

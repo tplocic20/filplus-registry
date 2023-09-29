@@ -135,9 +135,14 @@ const useApplicationActions = (
     unknown
   >(
     async ({ requestId, userName }) => {
-      // TODO: Replace test values with actual values from application
-      const clientAddress = 't01001'
-      const datacap = '1PiB'
+      const clientAddress =
+        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+        initialApplication.info.datacap_allocations[0].request_information.client_address.substring(
+          1,
+        )
+      const datacap =
+        initialApplication.info.datacap_allocations[0].request_information
+          .allocation_amount
 
       const proposalTx = await getProposalTx(clientAddress, datacap)
       if (proposalTx !== false) {
@@ -186,8 +191,14 @@ const useApplicationActions = (
     unknown
   >(
     async ({ requestId, userName }) => {
-      const clientAddress = 't01001'
-      const datacap = '1PiB'
+      const clientAddress =
+        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+        initialApplication.info.datacap_allocations[0].request_information.client_address.substring(
+          1,
+        )
+      const datacap =
+        initialApplication.info.datacap_allocations[0].request_information
+          .allocation_amount
 
       const proposalTx = await getProposalTx(clientAddress, datacap)
 
