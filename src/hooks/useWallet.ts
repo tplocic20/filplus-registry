@@ -23,7 +23,7 @@ const walletClassRegistry: Record<string, any> = {
  * @interface WalletState
  */
 interface WalletState {
-  error: Error | null
+  walletError: Error | null
   setActiveAccountIndex: (index: number) => void
   activeAddress: string
   getProposalTx: (
@@ -44,7 +44,7 @@ interface WalletState {
  */
 const useWallet = (): WalletState => {
   const [wallet, setWallet] = useState<IWallet | null>(null)
-  const [error, setError] = useState<Error | null>(null)
+  const [walletError, setWalletError] = useState<Error | null>(null)
   const [accounts, setAccounts] = useState<string[]>([])
   const [multisigAddress, setMultisigAddress] = useState<string>('')
   const [activeAccountIndex, setActiveAccountIndexState] = useState<number>(0)
@@ -87,7 +87,7 @@ const useWallet = (): WalletState => {
    * @returns {Promise<void>} - A promise that resolves when the wallet is initialized.
    */
   const initializeWallet = useCallback(async () => {
-    setError(null)
+    setWalletError(null)
 
     try {
       const walletClass: string = config.walletClass
@@ -107,9 +107,9 @@ const useWallet = (): WalletState => {
     } catch (err) {
       console.error('Error initializing wallet:', err)
       if (err instanceof Error) {
-        setError(err)
+        setWalletError(err)
       } else {
-        setError(new Error('Unknown error'))
+        setWalletError(new Error('Unknown error'))
       }
     }
   }, [initNetworkIndex])
@@ -210,7 +210,7 @@ const useWallet = (): WalletState => {
   const activeAddress = accounts[activeAccountIndex] ?? ''
 
   return {
-    error,
+    walletError,
     sign,
     activeAddress,
     getProposalTx,

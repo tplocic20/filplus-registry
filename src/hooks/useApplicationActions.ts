@@ -34,6 +34,7 @@ interface ApplicationActions {
     { requestId: string; userName: string },
     unknown
   >
+  walletError: Error | null
 }
 
 /**
@@ -53,6 +54,7 @@ const useApplicationActions = (
   const [application, setApplication] =
     useState<Application>(initialApplication)
   const {
+    walletError,
     initializeWallet,
     activeAddress,
     getProposalTx,
@@ -61,8 +63,13 @@ const useApplicationActions = (
   } = useWallet()
 
   useEffect(() => {
-    void initializeWallet()
+    try {
+      void initializeWallet()
+    } catch (error) {
+      console.error('Error initializing wallet:', error)
+    }
   }, [initializeWallet])
+
   /**
    * Updates the application cache with the latest data from the API.
    * Updates both the local application state and the react-query cache.
@@ -242,6 +249,7 @@ const useApplicationActions = (
     mutationTrigger,
     mutationProposal,
     mutationApproval,
+    walletError,
   }
 }
 

@@ -32,6 +32,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     mutationTrigger,
     mutationProposal,
     mutationApproval,
+    walletError,
   } = useApplicationActions(initialApplication)
   const [buttonText, setButtonText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +63,12 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         setButtonText('')
     }
   }, [application.info.application_lifecycle.state, isApiCalling, session])
+
+  useEffect(() => {
+    if (walletError != null) {
+      setError(walletError.message)
+    }
+  }, [walletError])
 
   /**
    * Handles the modal close event.

@@ -17,7 +17,7 @@ const localConfig = {
   dev_mode: process.env.NEXT_PUBLIC_MODE,
   numberOfWalletAccounts: 20,
   mnemonic: process.env.NEXT_PUBLIC_MNEMONIC,
-  walletClass: 'BurnerWallet',
+  walletClass: 'LedgerWallet',
 }
 
 const prodConfig = {

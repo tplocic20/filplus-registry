@@ -23,13 +23,22 @@ export class LedgerWallet extends BaseWallet {
   }
 
   /**
+   * Lists the Ledger devices connected to the computer.
+   *
+   * @returns {Promise<USBDevice[]>} - A promise that resolves with the list of devices.
+   */
+  public async detectLedgerDevices(): Promise<any[]> {
+    return await TransportWebUSB.list()
+  }
+
+  /**
    * Initializes the API for the wallet.
    * @private
    */
   private async initializeApi(): Promise<void> {
     this.api = new VerifyAPI(
       VerifyAPI.browserProvider(this.lotusNode.url, {
-        token: async () => this.lotusNode.token,
+        token: async () => this.lotusNode?.token,
       }),
       {
         sign: this.sign,
@@ -60,10 +69,22 @@ export class LedgerWallet extends BaseWallet {
     try {
       this.ledgerApp = new FilecoinApp(transport)
       const version = await this.ledgerApp.getVersion()
+      const appInfo = await this.ledgerApp.appInfo()
+      const deviceInfo = await this.ledgerApp.deviceInfo()
+      console.log('Ledger version', version)
+      console.log('Ledger appInfo', appInfo)
+      console.log('Ledger deviceInfo', deviceInfo)
 
-      if (version.device_locked === true) throw new Error('Ledger locked.')
+      if (
+        version.return_code === 65535 &&
+        version.error_message.includes('LockedDeviceError') === true
+      ) {
+        throw new Error('Ledger locked. Please, unlock it and refresh page.')
+      }
+
       if (version.test_mode === true)
         throw new Error('Filecoin app in test mode.')
+
       if (version.minor < 18 || (version.minor === 18 && version.patch < 2)) {
         throw new Error('Please update Filecoin app on Ledger.')
       }
@@ -88,6 +109,7 @@ export class LedgerWallet extends BaseWallet {
       const returnLoad = await this.ledgerApp.getAddressAndPubKey(path)
       this.handleErrors(returnLoad)
       accounts.push(returnLoad.addrString)
+      console.log(returnLoad.addrString)
     }
 
     return accounts
@@ -172,7 +194,7 @@ export class LedgerWallet extends BaseWallet {
    */
   private handleErrors(response: any): any {
     if (response.error_message?.toLowerCase().includes('no errors') === true)
-      return
+      return response
 
     if (
       response.error_message

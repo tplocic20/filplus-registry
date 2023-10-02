@@ -30,11 +30,9 @@ export class BurnerWallet extends BaseWallet {
         config.dev_mode === 'production'
           ? {
               token: async () => this.lotusNode?.token,
-              sendHttpContentType: 'application/json',
             }
           : {
               token: async () => this.lotusNode?.token,
-              sendHttpContentType: 'application/json',
             }
 
       this.api = new VerifyAPI(
