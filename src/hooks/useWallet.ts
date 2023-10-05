@@ -1,7 +1,3 @@
-/**
- * @module useWallet
- */
-
 import { useState, useCallback } from 'react'
 import { LedgerWallet } from '@/lib/wallet/LedgerWallet'
 import { BurnerWallet } from '@/lib/wallet/BurnerWallet'
@@ -13,8 +9,14 @@ import { anyToBytes } from '@/lib/utils'
  * Registry that maps wallet class names to their respective classes.
  */
 const walletClassRegistry: Record<string, any> = {
-  LedgerWallet: (arg: any) => new LedgerWallet(arg),
-  BurnerWallet: (arg: any) => new BurnerWallet(arg),
+  LedgerWallet: (
+    networkIndex: number,
+    setMessage: (message: string | null) => void,
+  ) => new LedgerWallet(networkIndex, setMessage),
+  BurnerWallet: (
+    networkIndex: number,
+    setMessage: (message: string | null) => void,
+  ) => new BurnerWallet(networkIndex, setMessage),
 }
 
 /**
@@ -33,7 +35,9 @@ interface WalletState {
   sendProposal: (clientAddress: string, datacap: string) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
-  initializeWallet: () => Promise<void>
+  initializeWallet: () => Promise<boolean>
+  message: string | null
+  setMessage: (message: string | null) => void
 }
 
 /**
@@ -48,6 +52,7 @@ const useWallet = (): WalletState => {
   const [accounts, setAccounts] = useState<string[]>([])
   const [multisigAddress, setMultisigAddress] = useState<string>('')
   const [activeAccountIndex, setActiveAccountIndexState] = useState<number>(0)
+  const [message, setMessage] = useState<string | null>(null)
 
   /**
    * Sets the active account index.
@@ -84,26 +89,30 @@ const useWallet = (): WalletState => {
    * Initializes the wallet using the given class name.
    *
    * @param {string} WalletClass - The name of the wallet class to initialize.
-   * @returns {Promise<void>} - A promise that resolves when the wallet is initialized.
+   * @returns {Promise<boolean>} - A promise that resolves when the wallet is initialized.
    */
   const initializeWallet = useCallback(async () => {
     setWalletError(null)
+    setMessage('Initializing wallet...')
 
     try {
       const walletClass: string = config.walletClass
       const networkIndex = initNetworkIndex()
-      const newWallet = walletClassRegistry[walletClass](networkIndex)
+      const newWallet = walletClassRegistry[walletClass](
+        networkIndex,
+        setMessage,
+      )
       await newWallet.loadWallet()
-
       const allAccounts = await newWallet.getAccounts()
 
       if (allAccounts.length > 0) {
         setActiveAccountIndexState(0)
         setAccounts(allAccounts)
       }
-
+      setMessage(null)
       setWallet(newWallet)
       setMultisigAddress(newWallet.lotusNode.rkhMultisig)
+      return true
     } catch (err) {
       console.error('Error initializing wallet:', err)
       if (err instanceof Error) {
@@ -111,6 +120,7 @@ const useWallet = (): WalletState => {
       } else {
         setWalletError(new Error('Unknown error'))
       }
+      return false
     }
   }, [initNetworkIndex])
 
@@ -173,6 +183,8 @@ const useWallet = (): WalletState => {
       if (wallet == null) throw new Error('No wallet initialized.')
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
+      setMessage('Sending proposal...')
+
       const bytesDatacap = anyToBytes(datacap)
       const messageCID = await wallet.api.multisigVerifyClient(
         multisigAddress,
@@ -180,6 +192,9 @@ const useWallet = (): WalletState => {
         BigInt(bytesDatacap),
         activeAccountIndex,
       )
+
+      setMessage(`Proposal sent correctly. CID: ${messageCID as string}`)
+
       return messageCID
     },
     [wallet, multisigAddress, activeAccountIndex],
@@ -197,11 +212,17 @@ const useWallet = (): WalletState => {
     async (txHash: string): Promise<string> => {
       if (wallet == null) throw new Error('No wallet initialized.')
       if (multisigAddress == null) throw new Error('Multisig address not set.')
+
+      setMessage('Sending approval...')
+
       const messageCID = await wallet.api.approvePending(
         multisigAddress,
         txHash,
         activeAccountIndex,
       )
+
+      setMessage(`Approval sent correctly. CID: ${messageCID as string}`)
+
       return messageCID
     },
     [wallet, multisigAddress, activeAccountIndex],
@@ -218,6 +239,8 @@ const useWallet = (): WalletState => {
     sendApproval,
     setActiveAccountIndex,
     initializeWallet,
+    message,
+    setMessage,
   }
 }
 

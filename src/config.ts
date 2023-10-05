@@ -15,7 +15,7 @@ const localConfig = {
     },
   ],
   dev_mode: process.env.NEXT_PUBLIC_MODE,
-  numberOfWalletAccounts: 20,
+  numberOfWalletAccounts: 5,
   mnemonic: process.env.NEXT_PUBLIC_MNEMONIC,
   walletClass: 'LedgerWallet',
 }
@@ -37,7 +37,7 @@ const prodConfig = {
     },
   ],
   dev_mode: process.env.NEXT_PUBLIC_MODE,
-  numberOfWalletAccounts: 20,
+  numberOfWalletAccounts: 5,
   mnemonic: process.env.MNEMONIC,
   walletClass: 'LedgerWallet',
 }

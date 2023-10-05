@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   useQueryClient,
   useMutation,
@@ -35,6 +35,8 @@ interface ApplicationActions {
     unknown
   >
   walletError: Error | null
+  initializeWallet: () => Promise<boolean>
+  message: string | null
 }
 
 /**
@@ -60,15 +62,8 @@ const useApplicationActions = (
     getProposalTx,
     sendProposal,
     sendApproval,
+    message,
   } = useWallet()
-
-  useEffect(() => {
-    try {
-      void initializeWallet()
-    } catch (error) {
-      console.error('Error initializing wallet:', error)
-    }
-  }, [initializeWallet])
 
   /**
    * Updates the application cache with the latest data from the API.
@@ -250,6 +245,8 @@ const useApplicationActions = (
     mutationProposal,
     mutationApproval,
     walletError,
+    initializeWallet,
+    message,
   }
 }
 

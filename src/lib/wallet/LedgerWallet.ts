@@ -57,29 +57,28 @@ export class LedgerWallet extends BaseWallet {
     try {
       transport = await TransportWebUSB.create()
     } catch (e: any) {
-      console.error('TransportWebUSB error', e)
-      return
+      throw new Error(e.message)
     }
 
     if (transport === null || transport === undefined) {
-      console.error('Device not found')
-      return
+      throw new Error('Device not found')
     }
 
     try {
       this.ledgerApp = new FilecoinApp(transport)
       const version = await this.ledgerApp.getVersion()
-      const appInfo = await this.ledgerApp.appInfo()
-      const deviceInfo = await this.ledgerApp.deviceInfo()
-      console.log('Ledger version', version)
-      console.log('Ledger appInfo', appInfo)
-      console.log('Ledger deviceInfo', deviceInfo)
 
       if (
         version.return_code === 65535 &&
         version.error_message.includes('LockedDeviceError') === true
       ) {
-        throw new Error('Ledger locked. Please, unlock it and refresh page.')
+        throw new Error('Ledger locked. Please, unlock it.')
+      }
+
+      if (version.return_code === 28161) {
+        throw new Error(
+          'Filecoin application is not open in Ledger. Please, open it.',
+        )
       }
 
       if (version.test_mode === true)
@@ -125,6 +124,7 @@ export class LedgerWallet extends BaseWallet {
     filecoinMessage: string,
     indexAccount: number,
   ): Promise<any> => {
+    this.setMessage('Please review and sign the transaction on your Ledger.')
     const serializedMessage = signer.transactionSerialize(filecoinMessage)
     const signedMessage = this.handleErrors(
       await this.ledgerApp.sign(
@@ -133,26 +133,6 @@ export class LedgerWallet extends BaseWallet {
       ),
     )
     return await this.generateSignedMessage(filecoinMessage, signedMessage)
-  }
-
-  /**
-   * Signs a RemoveDataCap message using the Ledger wallet.
-   * @param message - The message to sign.
-   * @param indexAccount - The index of the account to use for signing.
-   * @returns - The signed message in hex format.
-   */
-  public signRemoveDataCap = async (
-    message: any,
-    indexAccount: number,
-  ): Promise<string> => {
-    const messageBlob = Buffer.from(message.toString('hex'), 'hex')
-    const signedMessage = await this.ledgerApp.signRemoveDataCap(
-      `m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`,
-      messageBlob,
-    )
-    const tsCompact: string = signedMessage.signature_compact.toString('hex')
-    // const ts_der = signedMessage.signature_der.toString('hex')
-    return `01${tsCompact}`
   }
 
   /**
@@ -183,6 +163,26 @@ export class LedgerWallet extends BaseWallet {
         Type: 1,
       },
     })
+  }
+
+  /**
+   * Signs a RemoveDataCap message using the Ledger wallet.
+   * @param message - The message to sign.
+   * @param indexAccount - The index of the account to use for signing.
+   * @returns - The signed message in hex format.
+   */
+  public signRemoveDataCap = async (
+    message: any,
+    indexAccount: number,
+  ): Promise<string> => {
+    const messageBlob = Buffer.from(message.toString('hex'), 'hex')
+    const signedMessage = await this.ledgerApp.signRemoveDataCap(
+      `m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`,
+      messageBlob,
+    )
+    const tsCompact: string = signedMessage.signature_compact.toString('hex')
+    // const ts_der = signedMessage.signature_der.toString('hex')
+    return `01${tsCompact}`
   }
 
   /**

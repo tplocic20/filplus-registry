@@ -1,9 +1,7 @@
-// AppInfoCard.tsx
-
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { ErrorModal } from '@/components/ui/error-modal'
+import { Modal } from '@/components/ui/modal'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { type Application } from '@/type'
 import { useSession } from 'next-auth/react'
@@ -33,13 +31,56 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     mutationProposal,
     mutationApproval,
     walletError,
+    initializeWallet,
+    message,
   } = useApplicationActions(initialApplication)
   const [buttonText, setButtonText] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [modalMessage, setModalMessage] = useState<string | null>(null)
+  const [error, setError] = useState<boolean>(false)
+  const [walletConnected, setWalletConnected] = useState(false)
+  const [isWalletConnecting, setIsWalletConnecting] = useState(false)
+
+  useEffect(() => {
+    setModalMessage(message)
+  }, [message])
 
   const handleMutationError = (error: Error): void => {
-    setError(error.message)
+    let message = error.message
+    if (error.message.includes('Locked device')) {
+      message = 'Please unlock your ledger device.'
+    }
+    if (error.message.includes('already approved')) {
+      message = 'You have already approved this request.'
+    }
+    setModalMessage(message)
+    setError(true)
+    if (
+      error.message.includes('DisconnectedDeviceDuringOperation') ||
+      error.message.includes('Locked device')
+    ) {
+      setWalletConnected(false)
+    }
   }
+
+  /**
+   * Handles the connect ledger button click event.
+   *
+   * @returns {Promise<void>} - Returns a promise that resolves when the wallet is connected.
+   */
+  const handleConnectLedger = async (): Promise<void> => {
+    try {
+      setIsWalletConnecting(true)
+      const ret = await initializeWallet()
+      if (ret) setWalletConnected(true)
+      setIsWalletConnecting(false)
+      return
+    } catch (error) {
+      console.error('Error initializing ledger:', error)
+    }
+    setIsWalletConnecting(false)
+    setWalletConnected(false)
+  }
+
   useEffect(() => {
     if (isApiCalling) {
       setButtonText('Processing...')
@@ -66,7 +107,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
   useEffect(() => {
     if (walletError != null) {
-      setError(walletError.message)
+      setError(true)
+      setModalMessage(walletError.message)
     }
   }, [walletError])
 
@@ -74,7 +116,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Handles the modal close event.
    */
   const handleCloseModal = (): void => {
-    setError(null)
+    setError(false)
+    setModalMessage(null)
   }
 
   /**
@@ -112,14 +155,19 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     } catch (error) {
       handleMutationError(error as Error)
     }
+    setApiCalling(false)
   }
 
   return (
     <div>
-      {error !== null && (
-        <ErrorModal message={error} onClose={handleCloseModal} />
+      {modalMessage != null && (
+        <Modal
+          message={modalMessage}
+          onClose={handleCloseModal}
+          error={error}
+        />
       )}
-      {isApiCalling && (
+      {(isApiCalling || isWalletConnecting) && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <Spinner />
         </div>
@@ -167,12 +215,34 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         {application.info.application_lifecycle.state !== 'Confirmed' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex">
-              <Button
-                onClick={() => void handleButtonClick()}
-                disabled={isApiCalling}
-              >
-                {buttonText}
-              </Button>
+              {(walletConnected ||
+                application.info.application_lifecycle.state ===
+                  'GovernanceReview') && (
+                <Button
+                  onClick={() => void handleButtonClick()}
+                  disabled={isApiCalling}
+                >
+                  {buttonText}
+                </Button>
+              )}
+
+              {!walletConnected &&
+                application.info.application_lifecycle.state !==
+                  'GovernanceReview' && (
+                  <Button
+                    onClick={() => void handleConnectLedger()}
+                    disabled={
+                      isWalletConnecting ||
+                      isApiCalling ||
+                      application.info.application_lifecycle.state ===
+                        'Confirmed' ||
+                      application.info.application_lifecycle.state ===
+                        'GovernanceReview'
+                    }
+                  >
+                    Connect Ledger
+                  </Button>
+                )}
             </CardFooter>
           )}
       </Card>
