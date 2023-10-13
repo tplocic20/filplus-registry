@@ -18,7 +18,7 @@ export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
-    const { data } = await apiClient.get('application')
+    const { data } = await apiClient.get('application/active')
     return data
   } catch (error) {
     console.error(error)
@@ -36,7 +36,7 @@ export const getApplicationById = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application/${id}`)
-    return data
+    return data.length > 0 ? data[0] : undefined
   } catch (error) {
     console.error(error)
   }

@@ -176,6 +176,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         <CardHeader></CardHeader>
         <CardContent className="grid gap-4 text-sm">
           <div className="flex items-center justify-between">
+            <p className="text-muted-foreground">ID</p>
+            <p className="font-medium leading-none">{application.id}</p>
+          </div>
+          <div className="flex items-center justify-between">
             <p className="text-muted-foreground">Data Owner Name</p>
             <p className="font-medium leading-none">
               {application.info.core_information.data_owner_name}
