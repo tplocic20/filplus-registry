@@ -21,6 +21,23 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
         <Separator className="my-2" />
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between text-sm">
+            <div className="text-sm text-muted-foreground">Type</div>
+            <div>{allocation.request_information.request_type}</div>
+          </div>
+        </div>
+        <Separator className="my-2" />
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-sm text-muted-foreground">Status</div>
+            <div>
+              {allocation.request_information.is_active ? 'Active' : 'Inactive'}
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-2" />
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between text-sm">
             <div className="text-sm text-muted-foreground">Triggered by</div>
             <div>
               <a
@@ -40,7 +57,15 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="text-sm text-muted-foreground">Proposed by</div>
-                <div>@{allocation.signers[0].username}</div>
+                <div>
+                  <a
+                    href={`https://github.com/${allocation.signers[0].username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    @{allocation.signers[0].username}
+                  </a>
+                </div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
@@ -58,7 +83,15 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="text-sm text-muted-foreground">Approved by</div>
-                <div>@{allocation.signers[0].username}</div>
+                <div>
+                  <a
+                    href={`https://github.com/${allocation.signers[0].username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    @{allocation.signers[1].username}
+                  </a>
+                </div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
