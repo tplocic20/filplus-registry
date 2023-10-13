@@ -40,7 +40,7 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="text-sm text-muted-foreground">Proposed by</div>
-                <div>@ronaldo</div>
+                <div>@{allocation.signers[0].username}</div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
@@ -58,7 +58,7 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="text-sm text-muted-foreground">Approved by</div>
-                <div>@ronaldo</div>
+                <div>@{allocation.signers[0].username}</div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
