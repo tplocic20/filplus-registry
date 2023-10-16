@@ -39,9 +39,8 @@ export interface RequestInformation {
   client_address: string
   created_at: string
   is_active: boolean
-  request_id: string
+  id: string
   request_type: string
-  uuid: string
 }
 
 export interface Signer {

@@ -128,7 +128,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setApiCalling(true)
     const requestId = application.info.datacap_allocations.find(
       (alloc) => alloc.request_information.is_active,
-    )?.request_information.request_id
+    )?.request_information.id
 
     const userName = session.data?.user?.githubUsername
 

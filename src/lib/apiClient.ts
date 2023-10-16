@@ -85,7 +85,7 @@ export const postApplicationProposal = async (
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
         time_of_signature: getCurrentDate(),
         message_cid: signature,
-        signer: userName,
+        username: userName,
       },
     })
     return data
@@ -115,7 +115,7 @@ export const postApplicationApproval = async (
         signing_address: address,
         time_of_signature: getCurrentDate(),
         message_cid: signature,
-        signer: userName,
+        username: userName,
       },
     })
     return data
