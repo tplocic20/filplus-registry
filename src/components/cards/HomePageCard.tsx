@@ -3,9 +3,17 @@ import Link from 'next/link'
 import React from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
+import { shortenUrl } from '@/lib/utils'
 
 interface Props {
   application: Application
+}
+type requestTypeColors = 'New' | 'Refill'
+
+const requestTypeColor = {
+  New: 'bg-blue-500 text-white',
+  Refill: 'bg-green-500 text-white',
+  default: 'bg-gray-400 text-white',
 }
 
 const HomePageCard: React.FC<Props> = ({ application }) => {
@@ -43,13 +51,28 @@ const HomePageCard: React.FC<Props> = ({ application }) => {
           <p className="text-gray-500">State</p>
           <p className="font-medium leading-none">
             {application.info.application_lifecycle.state}
-            {requestType !== undefined ? ' - ' + requestType : ''}
+            {requestType !== undefined && (
+              <span
+                className={`ml-2 px-2 py-1 rounded text-xs ${
+                  requestTypeColor[requestType as requestTypeColors] ??
+                  requestTypeColor.default
+                }`}
+              >
+                {requestType}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-gray-500">Website</p>
           <p className="font-medium leading-none">
-            {application.info.core_information.website}
+            <a
+              href={application.info.core_information.website}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {shortenUrl(application.info.core_information.website, 18, 8)}
+            </a>
           </p>
         </div>
       </CardContent>

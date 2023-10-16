@@ -70,7 +70,15 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
                 <div>
-                  <div>{allocation.signers[0].signing_address}</div>
+                  <div>
+                    <a
+                      href={`https://filfox.info/en/address/${allocation.signers[0].signing_address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {allocation.signers[0].signing_address}
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -96,7 +104,15 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>
                 <div>
-                  <div>{allocation.signers[1].signing_address}</div>
+                  <div>
+                    <a
+                      href={`https://filfox.info/en/address/${allocation.signers[1].signing_address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {allocation.signers[1].signing_address}
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

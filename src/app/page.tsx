@@ -15,8 +15,13 @@ import { getAllApplications } from '@/lib/apiClient'
 import { Search } from 'lucide-react'
 import { useQuery } from 'react-query'
 import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Fuse from 'fuse.js'
 import { type Application } from '@/type'
+import { Spinner } from '@/components/ui/spinner'
+import 'react-toastify/dist/ReactToastify.css'
+import { toast, ToastContainer } from 'react-toastify'
+import { ToastContent } from '@/components/ui/toast-message-cid'
 
 export default function Home(): JSX.Element {
   const { data, isLoading } = useQuery({
@@ -26,6 +31,39 @@ export default function Home(): JSX.Element {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Application[]>([])
+
+  const searchParams = useSearchParams()
+  const notification = searchParams.get('notification')
+  const router = useRouter()
+  const pathName = usePathname()
+
+  useEffect(() => {
+    const handleNotification = async (): Promise<void> => {
+      if (notification != null) {
+        const messageCID = searchParams.get('messageCID') ?? ''
+        const amount = searchParams.get('amount') ?? '-'
+        const client = searchParams.get('client') ?? '-'
+
+        toast(
+          <ToastContent
+            amount={amount}
+            client={client}
+            messageCID={messageCID}
+          />,
+          {
+            autoClose: 5000,
+            type: toast.TYPE.SUCCESS,
+          },
+        )
+
+        router.replace(pathName)
+      }
+    }
+
+    handleNotification().catch((error) => {
+      console.error(error)
+    })
+  }, [notification, router, searchParams, pathName])
 
   useEffect(() => {
     if (isLoading || data == null) return
@@ -52,10 +90,17 @@ export default function Home(): JSX.Element {
     )
   }, [searchTerm, filter, data, isLoading])
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading)
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <Spinner />
+      </div>
+    )
 
   return (
     <main className="mt-10 px-10 grid">
+      <ToastContainer position="top-right" autoClose={5000} />
+
       <Tabs defaultValue="grid">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">

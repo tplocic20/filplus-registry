@@ -6,6 +6,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import useApplicationActions from '@/hooks/useApplicationActions'
+import { useRouter } from 'next/navigation'
+import { getLastDatacapAllocation } from '@/lib/utils'
 
 interface ComponentProps {
   application: Application
@@ -39,6 +41,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   const [error, setError] = useState<boolean>(false)
   const [walletConnected, setWalletConnected] = useState(false)
   const [isWalletConnecting, setIsWalletConnecting] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setModalMessage(message)
@@ -146,7 +149,30 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           break
         case 'Approval':
           if (requestId != null && userName != null) {
-            await mutationApproval.mutateAsync({ requestId, userName })
+            const res = await mutationApproval.mutateAsync({
+              requestId,
+              userName,
+            })
+            if (res?.info.application_lifecycle.state === 'Confirmed') {
+              const lastDatacapAllocation = getLastDatacapAllocation(res)
+              if (lastDatacapAllocation === undefined) {
+                throw new Error('No datacap allocation found')
+              }
+              const queryParams = [
+                `client=${encodeURIComponent(
+                  res?.info.core_information.data_owner_name,
+                )}`,
+                `messageCID=${encodeURIComponent(
+                  lastDatacapAllocation.signers[1].message_cid,
+                )}`,
+                `amount=${encodeURIComponent(
+                  lastDatacapAllocation.request_information.allocation_amount,
+                )}`,
+                `notification=true`,
+              ].join('&')
+
+              router.push(`/?${queryParams}`)
+            }
           }
           break
         default:
