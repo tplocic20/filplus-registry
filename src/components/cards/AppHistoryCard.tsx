@@ -21,26 +21,77 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
         <Separator className="my-2" />
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <div className="text-sm text-muted-foreground">proposed by</div>
-            <div>@nj-steve</div>
+            <div className="text-sm text-muted-foreground">Type</div>
+            <div>{allocation.request_information.request_type}</div>
           </div>
+        </div>
+        <Separator className="my-2" />
+        <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <div className="text-muted-foreground">signer address</div>
+            <div className="text-sm text-muted-foreground">Status</div>
             <div>
-              {allocation.signers.length > 0
-                ? allocation.signers[0].signing_address
-                : 'No signer'}
+              {allocation.request_information.is_active ? 'Active' : 'Inactive'}
             </div>
           </div>
         </div>
+
+        <Separator className="my-2" />
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-sm text-muted-foreground">Triggered by</div>
+            <div>
+              <a
+                href={`https://github.com/${allocation.request_information.actor}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                @{allocation.request_information.actor}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {allocation.signers.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="text-sm text-muted-foreground">Proposed by</div>
+                <div>
+                  <a
+                    href={`https://github.com/${allocation.signers[0].username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    @{allocation.signers[0].username}
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="text-muted-foreground">signer address</div>
+                <div>
+                  <div>{allocation.signers[0].signing_address}</div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {allocation.signers.length > 1 && (
           <>
             <Separator className="my-2" />
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <div className="text-sm text-muted-foreground">approved by</div>
-                <div>@ronaldo</div>
+                <div className="text-sm text-muted-foreground">Approved by</div>
+                <div>
+                  <a
+                    href={`https://github.com/${allocation.signers[0].username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    @{allocation.signers[1].username}
+                  </a>
+                </div>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="text-muted-foreground">signer address</div>

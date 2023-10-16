@@ -18,7 +18,7 @@ export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
-    const { data } = await apiClient.get('application')
+    const { data } = await apiClient.get('application/active')
     return data
   } catch (error) {
     console.error(error)
@@ -36,7 +36,7 @@ export const getApplicationById = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application/${id}`)
-    return data
+    return data.length > 0 ? data[0] : undefined
   } catch (error) {
     console.error(error)
   }
@@ -85,7 +85,7 @@ export const postApplicationProposal = async (
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
         time_of_signature: getCurrentDate(),
         message_cid: signature,
-        signer: userName,
+        username: userName,
       },
     })
     return data
@@ -115,7 +115,7 @@ export const postApplicationApproval = async (
         signing_address: address,
         time_of_signature: getCurrentDate(),
         message_cid: signature,
-        signer: userName,
+        username: userName,
       },
     })
     return data

@@ -12,7 +12,16 @@ export abstract class BaseWallet implements IWallet {
     indexAccount: number,
   ) => Promise<any>
 
-  constructor(networkIndex: number = 0) {
+  /**
+   * Creates an instance of BaseWallet.
+   *
+   * @param networkIndex - number - Index of the network to load the wallet for.
+   * @param setMessage - (message: string | null) => void - Callback to set the message.
+   */
+  constructor(
+    networkIndex: number = 0,
+    readonly setMessage: (message: string | null) => void,
+  ) {
     if (networkIndex === undefined) {
       networkIndex = 0
     }

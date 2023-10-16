@@ -39,16 +39,15 @@ export interface RequestInformation {
   client_address: string
   created_at: string
   is_active: boolean
-  request_id: string
+  id: string
   request_type: string
-  uuid: string
 }
 
 export interface Signer {
   message_cid: string
   signing_address: string
   time_of_signature: string
-  signer: string
+  username: string
 }
 
 export interface IWallet {
