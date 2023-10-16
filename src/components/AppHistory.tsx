@@ -30,7 +30,7 @@ const AppHistory: React.FC<ComponentProps> = ({
         ) : (
           sortedAllocations.map((allocation) => (
             <AppHistoryCard
-              key={allocation.request_information.uuid}
+              key={allocation.request_information.id}
               allocation={allocation}
             />
           ))
