@@ -4,16 +4,10 @@ import React from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
 import { shortenUrl } from '@/lib/utils'
+import { requestTypeColor, stateColor } from '@/lib/stylesConstants'
 
 interface Props {
   application: Application
-}
-type requestTypeColors = 'New' | 'Refill'
-
-const requestTypeColor = {
-  New: 'bg-blue-500 text-white',
-  Refill: 'bg-green-500 text-white',
-  default: 'bg-gray-400 text-white',
 }
 
 const HomePageCard: React.FC<Props> = ({ application }) => {
@@ -48,14 +42,24 @@ const HomePageCard: React.FC<Props> = ({ application }) => {
           </p>
         </div>
         <div className="flex items-center justify-between border-b border-gray-300 pb-2">
-          <p className="text-gray-500">State</p>
+          <p className="text-gray-500">Status</p>
           <p className="font-medium leading-none">
-            {application.info.application_lifecycle.state}
+            <span
+              className={`px-2 py-1 rounded text-xs ${
+                stateColor[
+                  application.info.application_lifecycle
+                    .state as keyof typeof stateColor
+                ]
+              }`}
+            >
+              {application.info.application_lifecycle.state}
+            </span>
             {requestType !== undefined && (
               <span
                 className={`ml-2 px-2 py-1 rounded text-xs ${
-                  requestTypeColor[requestType as requestTypeColors] ??
-                  requestTypeColor.default
+                  requestTypeColor[
+                    requestType as keyof typeof requestTypeColor
+                  ] ?? requestTypeColor.default
                 }`}
               >
                 {requestType}

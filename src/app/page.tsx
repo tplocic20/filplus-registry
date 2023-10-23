@@ -92,7 +92,7 @@ export default function Home(): JSX.Element {
 
   if (isLoading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
         <Spinner />
       </div>
     )
@@ -101,7 +101,7 @@ export default function Home(): JSX.Element {
     <main className="mt-10 px-10 grid">
       <ToastContainer position="top-right" autoClose={5000} />
 
-      <Tabs defaultValue="grid">
+      <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <div className="flex items-center relative">
@@ -138,20 +138,20 @@ export default function Home(): JSX.Element {
           </div>
 
           <TabsList>
-            <TabsTrigger value="grid">Grid View</TabsTrigger>
             <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="grid">Grid View</TabsTrigger>
           </TabsList>
         </div>
 
+        <TabsContent value="table">
+          <DataTable columns={columns} data={searchResults} />
+        </TabsContent>
         <TabsContent value="grid">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
             {searchResults?.map((app: Application) => (
               <AppCard application={app} key={app.id} />
             ))}
           </div>
-        </TabsContent>
-        <TabsContent value="table">
-          <DataTable columns={columns} data={searchResults} />
         </TabsContent>
       </Tabs>
     </main>

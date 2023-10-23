@@ -18,6 +18,8 @@ const localConfig = {
   numberOfWalletAccounts: 5,
   mnemonic: process.env.NEXT_PUBLIC_MNEMONIC,
   walletClass: 'LedgerWallet',
+  githubRepoUrl:
+    'https://github.com/filecoin-project/filplus-tooling-backend-test',
 }
 
 const prodConfig = {
@@ -40,6 +42,8 @@ const prodConfig = {
   numberOfWalletAccounts: 5,
   mnemonic: process.env.MNEMONIC,
   walletClass: 'LedgerWallet',
+  githubRepoUrl:
+    'https://github.com/filecoin-project/filecoin-plus-large-datasets',
 }
 
 export const config =
