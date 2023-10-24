@@ -11,21 +11,26 @@ export interface Info {
 }
 
 export interface ApplicationLifecycle {
-  first_allocation_time: string
-  initial_pr_number: number
-  is_active: boolean
   state: string
-  time_of_new_state: string
-  validated_by: string
   validated_time: string
+  initial_pr_number: number
+  validated_by: string
+  first_allocation_time: string
+  is_active: boolean
+  time_of_new_state: string
+  current_allocation_id: string
 }
 
 export interface CoreInformation {
-  data_owner_industry: string
   data_owner_name: string
+  data_owner_github_handle: string
   data_owner_region: string
-  social_media: string
+  data_owner_industry: string
+  data_owner_address: string
+  requested_amount: string
+  datacap_weekly_allocation: string
   website: string
+  social_media: string
 }
 
 export interface DatacapAllocation {
@@ -35,12 +40,12 @@ export interface DatacapAllocation {
 
 export interface RequestInformation {
   actor: string
-  allocation_amount: string
+  id: string
+  request_type: string
   client_address: string
   created_at: string
   is_active: boolean
-  id: string
-  request_type: string
+  allocation_amount: string
 }
 
 export interface Signer {
@@ -72,4 +77,10 @@ export interface ConfigLotusNode {
 
 export interface API {
   actorAddress: (account: string) => Promise<string>
+}
+
+export interface ApiAllowanceResponse {
+  error: string
+  success: boolean
+  data: string
 }

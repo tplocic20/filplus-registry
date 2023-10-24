@@ -3,6 +3,8 @@ import Link from 'next/link'
 import React from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
+import { shortenUrl } from '@/lib/utils'
+import { requestTypeColor, stateColor } from '@/lib/constants'
 
 interface Props {
   application: Application
@@ -40,16 +42,41 @@ const HomePageCard: React.FC<Props> = ({ application }) => {
           </p>
         </div>
         <div className="flex items-center justify-between border-b border-gray-300 pb-2">
-          <p className="text-gray-500">State</p>
+          <p className="text-gray-500">Status</p>
           <p className="font-medium leading-none">
-            {application.info.application_lifecycle.state}
-            {requestType !== undefined ? ' - ' + requestType : ''}
+            <span
+              className={`px-2 py-1 rounded text-xs ${
+                stateColor[
+                  application.info.application_lifecycle
+                    .state as keyof typeof stateColor
+                ]
+              }`}
+            >
+              {application.info.application_lifecycle.state}
+            </span>
+            {requestType !== undefined && (
+              <span
+                className={`ml-2 px-2 py-1 rounded text-xs ${
+                  requestTypeColor[
+                    requestType as keyof typeof requestTypeColor
+                  ] ?? requestTypeColor.default
+                }`}
+              >
+                {requestType}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-gray-500">Website</p>
           <p className="font-medium leading-none">
-            {application.info.core_information.website}
+            <a
+              href={application.info.core_information.website}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {shortenUrl(application.info.core_information.website, 18, 8)}
+            </a>
           </p>
         </div>
       </CardContent>

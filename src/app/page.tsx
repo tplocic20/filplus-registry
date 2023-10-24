@@ -15,8 +15,13 @@ import { getAllApplications } from '@/lib/apiClient'
 import { Search } from 'lucide-react'
 import { useQuery } from 'react-query'
 import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Fuse from 'fuse.js'
 import { type Application } from '@/type'
+import { Spinner } from '@/components/ui/spinner'
+import 'react-toastify/dist/ReactToastify.css'
+import { toast, ToastContainer } from 'react-toastify'
+import { ToastContent } from '@/components/ui/toast-message-cid'
 
 export default function Home(): JSX.Element {
   const { data, isLoading } = useQuery({
@@ -26,6 +31,39 @@ export default function Home(): JSX.Element {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Application[]>([])
+
+  const searchParams = useSearchParams()
+  const notification = searchParams.get('notification')
+  const router = useRouter()
+  const pathName = usePathname()
+
+  useEffect(() => {
+    const handleNotification = async (): Promise<void> => {
+      if (notification != null) {
+        const messageCID = searchParams.get('messageCID') ?? ''
+        const amount = searchParams.get('amount') ?? '-'
+        const client = searchParams.get('client') ?? '-'
+
+        toast(
+          <ToastContent
+            amount={amount}
+            client={client}
+            messageCID={messageCID}
+          />,
+          {
+            autoClose: 5000,
+            type: toast.TYPE.SUCCESS,
+          },
+        )
+
+        router.replace(pathName)
+      }
+    }
+
+    handleNotification().catch((error) => {
+      console.error(error)
+    })
+  }, [notification, router, searchParams, pathName])
 
   useEffect(() => {
     if (isLoading || data == null) return
@@ -38,9 +76,12 @@ export default function Home(): JSX.Element {
     const fuseOptions =
       filteredData?.length > 0
         ? {
-            keys: Object.keys(filteredData[0].info.core_information).map(
-              (key) => `info.core_information.${key}`,
-            ),
+            keys: [
+              ...Object.keys(filteredData[0].info.core_information).map(
+                (key) => `info.core_information.${key}`,
+              ),
+              'id',
+            ],
           }
         : { keys: [] }
 
@@ -52,11 +93,18 @@ export default function Home(): JSX.Element {
     )
   }, [searchTerm, filter, data, isLoading])
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading)
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
+        <Spinner />
+      </div>
+    )
 
   return (
     <main className="mt-10 px-10 grid">
-      <Tabs defaultValue="grid">
+      <ToastContainer position="top-right" autoClose={5000} />
+
+      <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <div className="flex items-center relative">
@@ -93,20 +141,20 @@ export default function Home(): JSX.Element {
           </div>
 
           <TabsList>
-            <TabsTrigger value="grid">Grid View</TabsTrigger>
             <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="grid">Grid View</TabsTrigger>
           </TabsList>
         </div>
 
+        <TabsContent value="table">
+          <DataTable columns={columns} data={searchResults} />
+        </TabsContent>
         <TabsContent value="grid">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
             {searchResults?.map((app: Application) => (
               <AppCard application={app} key={app.id} />
             ))}
           </div>
-        </TabsContent>
-        <TabsContent value="table">
-          <DataTable columns={columns} data={searchResults} />
         </TabsContent>
       </Tabs>
     </main>

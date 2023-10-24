@@ -18,11 +18,11 @@ const AppHistory: React.FC<ComponentProps> = ({
   })
 
   return (
-    <div>
+    <>
       <h2 className="text-3xl font-bold tracking-tight mb-6">
         Application History
       </h2>
-      <div className="grid gap-4 max-w-xl">
+      <div className="grid gap-4 w-full">
         {sortedAllocations.length === 0 ? (
           <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
             No allocation yet.
@@ -36,7 +36,7 @@ const AppHistory: React.FC<ComponentProps> = ({
           ))
         )}
       </div>
-    </div>
+    </>
   )
 }
 

@@ -106,7 +106,7 @@ const useWallet = (): WalletState => {
       const allAccounts = await newWallet.getAccounts()
 
       if (allAccounts.length > 0) {
-        setActiveAccountIndexState(0)
+        setActiveAccountIndexState(1)
         setAccounts(allAccounts)
       }
       setMessage(null)
