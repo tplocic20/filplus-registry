@@ -5,7 +5,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 import { shortenUrl } from '@/lib/utils'
-import { requestTypeColor, stateColor } from '@/lib/stylesConstants'
+import { requestTypeColor, stateColor, stateMapping } from '@/lib/constants'
 
 export const columns: Array<ColumnDef<Application>> = [
   {
@@ -32,6 +32,12 @@ export const columns: Array<ColumnDef<Application>> = [
         (alloc) => alloc.request_information.is_active,
       )?.request_information.request_type
 
+      const stateLabel =
+        stateMapping[
+          row.original.info.application_lifecycle
+            .state as keyof typeof stateMapping
+        ] ?? row.original.info.application_lifecycle.state
+
       return (
         <div className="flex items-center">
           <span
@@ -42,7 +48,7 @@ export const columns: Array<ColumnDef<Application>> = [
               ]
             }`}
           >
-            {row.original.info.application_lifecycle.state}
+            {stateLabel}
           </span>
           {requestType !== undefined && (
             <span

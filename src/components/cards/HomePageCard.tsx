@@ -4,7 +4,7 @@ import React from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
 import { shortenUrl } from '@/lib/utils'
-import { requestTypeColor, stateColor } from '@/lib/stylesConstants'
+import { requestTypeColor, stateColor } from '@/lib/constants'
 
 interface Props {
   application: Application

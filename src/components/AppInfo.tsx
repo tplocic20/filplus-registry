@@ -7,8 +7,11 @@ import { type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import useApplicationActions from '@/hooks/useApplicationActions'
 import { useRouter } from 'next/navigation'
-import { getLastDatacapAllocation } from '@/lib/utils'
+import { getLastDatacapAllocation, anyToBytes } from '@/lib/utils'
 import { config } from '@/config'
+import { getAllowanceForAddress } from '@/lib/dmobApi'
+import ProgressBar from '@/components/ui/progress-bar'
+import { stateMapping } from '@/lib/constants'
 
 interface ComponentProps {
   application: Application
@@ -22,7 +25,7 @@ interface ComponentProps {
  * @prop {Application} initialApplication - The initial data for the application.
  * @prop {UseSession} session - User session data.
  */
-const AppInfoCard: React.FC<ComponentProps> = ({
+const AppInfo: React.FC<ComponentProps> = ({
   application: initialApplication,
 }) => {
   const session = useSession()
@@ -42,12 +45,46 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   const [error, setError] = useState<boolean>(false)
   const [walletConnected, setWalletConnected] = useState(false)
   const [isWalletConnecting, setIsWalletConnecting] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isProgressBarLoading, setIsProgressBarLoading] = useState(true)
+
   const router = useRouter()
 
   useEffect(() => {
     setModalMessage(message)
   }, [message])
 
+  /**
+   * Fetches the datacap allowance for the application in order to calculate the progress bar.
+   */
+  useEffect(() => {
+    const fetchDatacap = async (): Promise<void> => {
+      const address = application.info.core_information.data_owner_address
+      const response = await getAllowanceForAddress(address)
+      if (response.success) {
+        const allowance = parseFloat(response.data)
+        const allocationAmount = anyToBytes(
+          application.info.datacap_allocations[0].request_information
+            .allocation_amount,
+        )
+        const usedDatacap = allocationAmount - allowance
+        console.log({ allowance, allocationAmount, usedDatacap })
+        const progressPercentage = (usedDatacap / allocationAmount) * 100
+        setProgress(progressPercentage)
+        setIsProgressBarLoading(false)
+      } else {
+        console.error(response.error)
+      }
+    }
+
+    void fetchDatacap()
+  }, [application])
+
+  /**
+   * Handles the mutation error event.
+   *
+   * @param {Error} error - The error object.
+   */
   const handleMutationError = (error: Error): void => {
     let message = error.message
     if (error.message.includes('Locked device')) {
@@ -85,6 +122,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setWalletConnected(false)
   }
 
+  /**
+   * Handles the application status change event.
+   */
   useEffect(() => {
     if (isApiCalling) {
       setButtonText('Processing...')
@@ -109,6 +149,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
   }, [application.info.application_lifecycle.state, isApiCalling, session])
 
+  /**
+   * Handles the wallet error event.
+   */
   useEffect(() => {
     if (walletError != null) {
       setError(true)
@@ -185,6 +228,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setApiCalling(false)
   }
 
+  const stateLabel =
+    stateMapping[
+      application.info.application_lifecycle.state as keyof typeof stateMapping
+    ] ?? application.info.application_lifecycle.state
+
   return (
     <>
       <h2 className="text-3xl font-bold tracking-tight mb-6">
@@ -220,13 +268,18 @@ const AppInfoCard: React.FC<ComponentProps> = ({
             ['Industry', application.info.core_information.data_owner_industry],
             ['Website', application.info.core_information.website],
             ['Social', application.info.core_information.social_media],
-            ['Status', application.info.application_lifecycle.state],
+            ['Status', stateLabel],
           ].map(([label, value], idx) => (
             <div key={idx} className="flex items-center justify-between">
               <p className="text-gray-600">{label}</p>
               <p className="font-medium text-gray-800">{value}</p>
             </div>
           ))}
+          <ProgressBar
+            progress={progress}
+            label="Datacap used"
+            isLoading={isProgressBarLoading}
+          />
         </CardContent>
         {application.info.application_lifecycle.state !== 'Confirmed' &&
           session?.data?.user?.name !== undefined && (
@@ -268,4 +321,4 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   )
 }
 
-export default AppInfoCard
+export default AppInfo

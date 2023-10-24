@@ -15,3 +15,10 @@ export const allocationActiveColor = {
   inactive: 'bg-gray-400 text-white',
   active: 'bg-blue-400 text-white',
 }
+
+export const stateMapping = {
+  GovernanceReview: 'Governance Review',
+  Proposal: 'Start sign datacap',
+  Approval: 'Ready to sign',
+  Confirmed: 'Granted',
+}

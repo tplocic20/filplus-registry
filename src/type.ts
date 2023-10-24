@@ -78,3 +78,9 @@ export interface ConfigLotusNode {
 export interface API {
   actorAddress: (account: string) => Promise<string>
 }
+
+export interface ApiAllowanceResponse {
+  error: string
+  success: boolean
+  data: string
+}

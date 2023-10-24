@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type DatacapAllocation } from '@/type'
-import { requestTypeColor, allocationActiveColor } from '@/lib/stylesConstants'
+import { requestTypeColor, allocationActiveColor } from '@/lib/constants'
 import { Separator } from '../ui/separator'
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
@@ -40,7 +40,9 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
                   ] ?? requestTypeColor.default
                 }`}
               >
-                {allocation.request_information.request_type}
+                {allocation.request_information.request_type === 'New'
+                  ? 'Initial'
+                  : allocation.request_information.request_type}
               </span>
               {allocation.request_information.is_active ? (
                 <span
@@ -52,7 +54,7 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
                 <span
                   className={`ml-2 px-2 py-1 rounded text-xs ${allocationActiveColor.inactive}`}
                 >
-                  Inactive
+                  Granted
                 </span>
               )}
             </CardTitle>

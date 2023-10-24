@@ -76,9 +76,12 @@ export default function Home(): JSX.Element {
     const fuseOptions =
       filteredData?.length > 0
         ? {
-            keys: Object.keys(filteredData[0].info.core_information).map(
-              (key) => `info.core_information.${key}`,
-            ),
+            keys: [
+              ...Object.keys(filteredData[0].info.core_information).map(
+                (key) => `info.core_information.${key}`,
+              ),
+              'id',
+            ],
           }
         : { keys: [] }
 

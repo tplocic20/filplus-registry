@@ -20,6 +20,8 @@ const localConfig = {
   walletClass: 'LedgerWallet',
   githubRepoUrl:
     'https://github.com/filecoin-project/filplus-tooling-backend-test',
+  dmobApiUrl: 'https://api.filplus.d.interplanetary.one/public/api',
+  dmobApiKey: process.env.NEXT_PUBLIC_DMOB_API_KEY ?? '',
 }
 
 const prodConfig = {
@@ -44,6 +46,8 @@ const prodConfig = {
   walletClass: 'LedgerWallet',
   githubRepoUrl:
     'https://github.com/filecoin-project/filecoin-plus-large-datasets',
+  dmobApiUrl: 'https://api.filplus.d.interplanetary.one/public/api',
+  dmobApiKey: process.env.NEXT_PUBLIC_DMOB_API_KEY ?? '',
 }
 
 export const config =
