@@ -158,14 +158,22 @@ const useWallet = (): WalletState => {
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = anyToBytes(datacap)
-      const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
-      const pendingForClient = pendingTxs?.filter(
-        (tx: any) =>
-          tx?.parsed?.params?.address === clientAddress &&
-          tx?.parsed?.params?.cap === BigInt(bytesDatacap),
-      )
-      return pendingForClient.length > 0 ? pendingForClient.at(-1) : false
+      try {
+        const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+        const pendingForClient = pendingTxs?.filter(
+          (tx: any) =>
+            tx?.parsed?.params?.address === clientAddress &&
+            tx?.parsed?.params?.cap === BigInt(bytesDatacap),
+        )
+        return pendingForClient.length > 0 ? pendingForClient.at(-1) : false
+      } catch (error: any) {
+        console.error('Error getting pending transactions:', error.message)
+        throw new Error(
+          'Error accessing the node. Please try again later. If the problem persists, contact support.',
+        )
+      }
     },
+
     [wallet, multisigAddress],
   )
 
@@ -186,16 +194,21 @@ const useWallet = (): WalletState => {
       setMessage('Sending proposal...')
 
       const bytesDatacap = anyToBytes(datacap)
-      const messageCID = await wallet.api.multisigVerifyClient(
-        multisigAddress,
-        clientAddress,
-        BigInt(bytesDatacap),
-        activeAccountIndex,
-      )
+      try {
+        const messageCID = await wallet.api.multisigVerifyClient(
+          multisigAddress,
+          clientAddress,
+          BigInt(bytesDatacap),
+          activeAccountIndex,
+        )
 
-      setMessage(`Proposal sent correctly. CID: ${messageCID as string}`)
+        setMessage(`Proposal sent correctly. CID: ${messageCID as string}`)
 
-      return messageCID
+        return messageCID
+      } catch (error: any) {
+        console.error('Error sending proposal:', error.message)
+        return ''
+      }
     },
     [wallet, multisigAddress, activeAccountIndex],
   )
@@ -214,16 +227,20 @@ const useWallet = (): WalletState => {
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       setMessage('Sending approval...')
+      try {
+        const messageCID = await wallet.api.approvePending(
+          multisigAddress,
+          txHash,
+          activeAccountIndex,
+        )
 
-      const messageCID = await wallet.api.approvePending(
-        multisigAddress,
-        txHash,
-        activeAccountIndex,
-      )
+        setMessage(`Approval sent correctly. CID: ${messageCID as string}`)
 
-      setMessage(`Approval sent correctly. CID: ${messageCID as string}`)
-
-      return messageCID
+        return messageCID
+      } catch (error: any) {
+        console.error('Error sending approval:', error.message)
+        return ''
+      }
     },
     [wallet, multisigAddress, activeAccountIndex],
   )
