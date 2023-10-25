@@ -22,5 +22,5 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 
 There's a deployment for `develop` branch available in Netlify (https://develop--grand-lily-6ac7c3.netlify.app/). Updates to this deployment are triggered by `git push` command on `develop` branch.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/af2318b1-1bde-4385-b78e-d1d0a6bb0b82/deploy-status)](https://app.netlify.com/sites/grand-lily-6ac7c3/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/af2318b1-1bde-4385-b78e-d1d0a6bb0b82/deploy-status)](https://app.netlify.com/sites/filplus-registry/deploys)
 
