@@ -61,15 +61,18 @@ const AppInfo: React.FC<ComponentProps> = ({
     const fetchDatacap = async (): Promise<void> => {
       const address = application.info.core_information.data_owner_address
       const response = await getAllowanceForAddress(address)
+
       if (response.success) {
         const allowance = parseFloat(response.data)
+        const lastAllocation = getLastDatacapAllocation(application)
+        if (lastAllocation === undefined) return
+
         const allocationAmount = anyToBytes(
-          application.info.datacap_allocations[0].request_information
-            .allocation_amount,
+          lastAllocation.request_information?.allocation_amount,
         )
         const usedDatacap = allocationAmount - allowance
-        console.log({ allowance, allocationAmount, usedDatacap })
         const progressPercentage = (usedDatacap / allocationAmount) * 100
+
         setProgress(progressPercentage)
         setIsProgressBarLoading(false)
       } else {
@@ -233,11 +236,14 @@ const AppInfo: React.FC<ComponentProps> = ({
       application.info.application_lifecycle.state as keyof typeof stateMapping
     ] ?? application.info.application_lifecycle.state
 
+  const lastAllocation = getLastDatacapAllocation(application)
+
   return (
     <>
       <h2 className="text-3xl font-bold tracking-tight mb-6">
         Application Detail
       </h2>
+
       {modalMessage != null && (
         <Modal
           message={modalMessage}
@@ -245,11 +251,13 @@ const AppInfo: React.FC<ComponentProps> = ({
           error={error}
         />
       )}
+
       {(isApiCalling || isWalletConnecting) && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <Spinner />
         </div>
       )}
+
       <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
         <CardHeader className="border-b pb-2 mb-4">
           <a
@@ -262,6 +270,7 @@ const AppInfo: React.FC<ComponentProps> = ({
             <span className="text-muted-foreground">#{application.id}</span>
           </a>
         </CardHeader>
+
         <CardContent className="grid gap-4 text-sm">
           {[
             ['Region', application.info.core_information.data_owner_region],
@@ -275,13 +284,16 @@ const AppInfo: React.FC<ComponentProps> = ({
               <p className="font-medium text-gray-800">{value}</p>
             </div>
           ))}
-          <ProgressBar
-            progress={progress}
-            label="Datacap used"
-            isLoading={isProgressBarLoading}
-          />
+          {lastAllocation !== undefined && (
+            <ProgressBar
+              progress={progress}
+              label="Datacap used"
+              isLoading={isProgressBarLoading}
+            />
+          )}
         </CardContent>
-        {application.info.application_lifecycle.state !== 'Confirmed' &&
+
+        {application?.info?.application_lifecycle?.state !== 'Confirmed' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
               {(walletConnected ||
@@ -297,7 +309,7 @@ const AppInfo: React.FC<ComponentProps> = ({
               )}
 
               {!walletConnected &&
-                application.info.application_lifecycle.state !==
+                application?.info?.application_lifecycle?.state !==
                   'GovernanceReview' && (
                   <Button
                     onClick={() => void handleConnectLedger()}

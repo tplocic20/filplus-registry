@@ -108,7 +108,6 @@ export class LedgerWallet extends BaseWallet {
       const returnLoad = await this.ledgerApp.getAddressAndPubKey(path)
       this.handleErrors(returnLoad)
       accounts.push(returnLoad.addrString)
-      console.log(returnLoad.addrString)
     }
 
     return accounts
