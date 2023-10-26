@@ -24,7 +24,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 
 export default function Home(): JSX.Element {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['application'],
     queryFn: getAllApplications,
   })
@@ -36,6 +36,10 @@ export default function Home(): JSX.Element {
   const notification = searchParams.get('notification')
   const router = useRouter()
   const pathName = usePathname()
+
+  useEffect(() => {
+    if (error instanceof Error) toast.error(`Error: ${error.message}`)
+  }, [error])
 
   useEffect(() => {
     const handleNotification = async (): Promise<void> => {
@@ -102,7 +106,7 @@ export default function Home(): JSX.Element {
 
   return (
     <main className="mt-10 px-10 grid">
-      <ToastContainer position="top-right" autoClose={5000} />
+      <ToastContainer position="top-right" autoClose={10000} />
 
       <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">

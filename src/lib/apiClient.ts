@@ -12,16 +12,23 @@ export const apiClient = axios.create({
 /**
  * Get all applications
  *
- * @returns {Application[] | undefined}
+ * @returns {Promise<Application[]>}
+ * @throws {Error} When the API call fails.
  */
 export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
     const { data } = await apiClient.get('application/active')
+    if (!Array.isArray(data)) {
+      throw new Error('Received invalid data from the API')
+    }
     return data
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
+
+    const message = error?.message ?? 'Failed to fetch applications'
+    throw new Error(message)
   }
 }
 
