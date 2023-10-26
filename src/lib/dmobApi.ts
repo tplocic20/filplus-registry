@@ -21,6 +21,13 @@ export const getAllowanceForAddress = async (
     )
 
     const data = await response.json()
+    if (data?.type === 'error') {
+      return {
+        data: '',
+        error: data.message,
+        success: false,
+      }
+    }
 
     return {
       data: data.allowance,
