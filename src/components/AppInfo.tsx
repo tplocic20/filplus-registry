@@ -59,7 +59,7 @@ const AppInfo: React.FC<ComponentProps> = ({
    */
   useEffect(() => {
     const fetchDatacap = async (): Promise<void> => {
-      const address = application.info.core_information.data_owner_address
+      const address = application.Lifecycle['On Chain Address']
       const response = await getAllowanceForAddress(address)
 
       if (response.success) {
@@ -68,7 +68,7 @@ const AppInfo: React.FC<ComponentProps> = ({
         if (lastAllocation === undefined) return
 
         const allocationAmount = anyToBytes(
-          lastAllocation.request_information?.allocation_amount,
+          lastAllocation?.['Allocation Amount'] ?? '0',
         )
         const usedDatacap = allocationAmount - allowance
         const progressPercentage = (usedDatacap / allocationAmount) * 100
@@ -134,7 +134,7 @@ const AppInfo: React.FC<ComponentProps> = ({
       return
     }
 
-    switch (application.info.application_lifecycle.state) {
+    switch (application.Lifecycle.State) {
       case 'GovernanceReview':
         setButtonText('Trigger')
         break
@@ -150,7 +150,7 @@ const AppInfo: React.FC<ComponentProps> = ({
       default:
         setButtonText('')
     }
-  }, [application.info.application_lifecycle.state, isApiCalling, session])
+  }, [application.Lifecycle.State, isApiCalling, session])
 
   /**
    * Handles the wallet error event.
@@ -176,14 +176,14 @@ const AppInfo: React.FC<ComponentProps> = ({
    */
   const handleButtonClick = async (): Promise<void> => {
     setApiCalling(true)
-    const requestId = application.info.datacap_allocations.find(
-      (alloc) => alloc.request_information.is_active,
-    )?.request_information.id
+    const requestId = application['Allocation Requests'].find(
+      (alloc) => alloc.Active,
+    )?.ID
 
     const userName = session.data?.user?.githubUsername
 
     try {
-      switch (application.info.application_lifecycle.state) {
+      switch (application.Lifecycle.State) {
         case 'GovernanceReview':
           if (userName != null) {
             await mutationTrigger.mutateAsync(userName)
@@ -200,20 +200,18 @@ const AppInfo: React.FC<ComponentProps> = ({
               requestId,
               userName,
             })
-            if (res?.info.application_lifecycle.state === 'Confirmed') {
+            if (res?.Lifecycle.State === 'Confirmed') {
               const lastDatacapAllocation = getLastDatacapAllocation(res)
               if (lastDatacapAllocation === undefined) {
                 throw new Error('No datacap allocation found')
               }
               const queryParams = [
-                `client=${encodeURIComponent(
-                  res?.info.core_information.data_owner_name,
-                )}`,
+                `client=${encodeURIComponent(res?.Client.Name)}`,
                 `messageCID=${encodeURIComponent(
-                  lastDatacapAllocation.signers[1].message_cid,
+                  lastDatacapAllocation.Signers[1].message_cid,
                 )}`,
                 `amount=${encodeURIComponent(
-                  lastDatacapAllocation.request_information.allocation_amount,
+                  lastDatacapAllocation['Allocation Amount'],
                 )}`,
                 `notification=true`,
               ].join('&')
@@ -232,9 +230,8 @@ const AppInfo: React.FC<ComponentProps> = ({
   }
 
   const stateLabel =
-    stateMapping[
-      application.info.application_lifecycle.state as keyof typeof stateMapping
-    ] ?? application.info.application_lifecycle.state
+    stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
+    application.Lifecycle.State
 
   const lastAllocation = getLastDatacapAllocation(application)
 
@@ -261,22 +258,22 @@ const AppInfo: React.FC<ComponentProps> = ({
       <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
         <CardHeader className="border-b pb-2 mb-4">
           <a
-            href={`${config.githubRepoUrl}/issues/${application.id}`}
+            href={`${config.githubRepoUrl}/issues/${application.ID}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-2xl font-bold "
           >
-            {application.info.core_information.data_owner_name}{' '}
-            <span className="text-muted-foreground">#{application.id}</span>
+            {application.Client.Name}{' '}
+            <span className="text-muted-foreground">#{application.ID}</span>
           </a>
         </CardHeader>
 
         <CardContent className="grid gap-4 text-sm">
           {[
-            ['Region', application.info.core_information.data_owner_region],
-            ['Industry', application.info.core_information.data_owner_industry],
-            ['Website', application.info.core_information.website],
-            ['Social', application.info.core_information.social_media],
+            ['Region', application.Client.Region],
+            ['Industry', application.Client.Industry],
+            ['Website', application.Client.Website],
+            ['Social', application.Client['Social Media']],
             ['Status', stateLabel],
           ].map(([label, value], idx) => (
             <div key={idx} className="flex items-center justify-between">
@@ -293,12 +290,11 @@ const AppInfo: React.FC<ComponentProps> = ({
           )}
         </CardContent>
 
-        {application?.info?.application_lifecycle?.state !== 'Confirmed' &&
+        {application?.Lifecycle?.State !== 'Confirmed' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
               {(walletConnected ||
-                application.info.application_lifecycle.state ===
-                  'GovernanceReview') && (
+                application.Lifecycle.State === 'GovernanceReview') && (
                 <Button
                   onClick={() => void handleButtonClick()}
                   disabled={isApiCalling}
@@ -309,17 +305,14 @@ const AppInfo: React.FC<ComponentProps> = ({
               )}
 
               {!walletConnected &&
-                application?.info?.application_lifecycle?.state !==
-                  'GovernanceReview' && (
+                application?.Lifecycle?.State !== 'GovernanceReview' && (
                   <Button
                     onClick={() => void handleConnectLedger()}
                     disabled={
                       isWalletConnecting ||
                       isApiCalling ||
-                      application.info.application_lifecycle.state ===
-                        'Confirmed' ||
-                      application.info.application_lifecycle.state ===
-                        'GovernanceReview'
+                      application.Lifecycle.State === 'Confirmed' ||
+                      application.Lifecycle.State === 'GovernanceReview'
                     }
                     className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
                   >

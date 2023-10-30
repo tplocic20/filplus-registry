@@ -35,7 +35,10 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
           <AppInfo application={data} />
         </div>
         <div>
-          <AppHistory datacapAllocations={data.info.datacap_allocations} />
+          <AppHistory
+            datacapAllocations={data['Allocation Requests']}
+            actor={data.Lifecycle['Validated By']}
+          />
         </div>
       </div>
     )

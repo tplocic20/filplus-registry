@@ -1,20 +1,19 @@
 'use client'
-import { type DatacapAllocation } from '@/type'
+import { type AllocationRequest } from '@/type'
 import AppHistoryCard from './cards/AppHistoryCard'
 import moment from 'moment'
 
 interface ComponentProps {
-  datacapAllocations: DatacapAllocation[]
+  datacapAllocations: AllocationRequest[]
+  actor: string
 }
 
 const AppHistory: React.FC<ComponentProps> = ({
   datacapAllocations,
+  actor,
 }: ComponentProps) => {
   const sortedAllocations = [...datacapAllocations].sort((a, b) => {
-    return (
-      moment(b.request_information.created_at).valueOf() -
-      moment(a.request_information.created_at).valueOf()
-    )
+    return moment(b['Created At']).valueOf() - moment(a['Created At']).valueOf()
   })
 
   return (
@@ -30,8 +29,9 @@ const AppHistory: React.FC<ComponentProps> = ({
         ) : (
           sortedAllocations.map((allocation) => (
             <AppHistoryCard
-              key={allocation.request_information.id}
+              key={allocation.ID}
               allocation={allocation}
+              actor={actor}
             />
           ))
         )}

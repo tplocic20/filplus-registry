@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import ByteConverter from '@wtfcode/byte-converter'
 import { type UnitNames } from '@wtfcode/byte-converter/dist/types'
-import { type Application, type DatacapAllocation } from '@/type'
+import { type Application, type AllocationRequest } from '@/type'
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
@@ -42,20 +42,19 @@ export const anyToBytes = (inputDatacap: string): number => {
 
 export const getLastDatacapAllocation = (
   application: Application,
-): DatacapAllocation | undefined => {
-  if (application.info.application_lifecycle.current_allocation_id === null) {
+): AllocationRequest | undefined => {
+  if (application.Lifecycle['Active Request ID'] === null) {
     return undefined
   }
-  const lastAllocation = application.info.datacap_allocations.find(
-    (allocation: DatacapAllocation) =>
-      allocation.request_information.id ===
-      application.info.application_lifecycle.current_allocation_id,
+  const lastAllocation = application['Allocation Requests'].find(
+    (allocation: AllocationRequest) =>
+      allocation.ID === application.Lifecycle['Active Request ID'],
   )
 
   if (
     lastAllocation === undefined ||
-    lastAllocation.request_information.is_active ||
-    lastAllocation.signers.length !== 2
+    lastAllocation.Active ||
+    lastAllocation.Signers.length !== 2
   ) {
     return undefined
   }

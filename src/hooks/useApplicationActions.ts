@@ -81,7 +81,7 @@ const useApplicationActions = (
       (oldData: Application[] | undefined) => {
         if (oldData == null) return []
         const indexToUpdate = oldData?.findIndex(
-          (app) => app.id === apiResponse?.id,
+          (app) => app.ID === apiResponse?.ID,
         )
         if (apiResponse != null && indexToUpdate !== -1) {
           oldData[indexToUpdate] = apiResponse
@@ -90,7 +90,7 @@ const useApplicationActions = (
       },
     )
 
-    queryClient.setQueryData(['posts', initialApplication.id], () => {
+    queryClient.setQueryData(['posts', initialApplication.ID], () => {
       return apiResponse
     })
   }
@@ -110,7 +110,7 @@ const useApplicationActions = (
     unknown
   >(
     async (userName: string) =>
-      await postApplicationTrigger(initialApplication.id, userName),
+      await postApplicationTrigger(initialApplication.ID, userName),
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -139,12 +139,12 @@ const useApplicationActions = (
     async ({ requestId, userName }) => {
       const clientAddress =
         (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
-        initialApplication.info.datacap_allocations[0].request_information.client_address.substring(
-          1,
-        )
-      const datacap =
-        initialApplication.info.datacap_allocations[0].request_information
-          .allocation_amount
+        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const datacap = initialApplication['Allocation Requests'].find(
+        (alloc) => alloc.Active,
+      )?.['Allocation Amount']
+
+      if (datacap == null) throw new Error('No active allocation found')
 
       const proposalTx = await getProposalTx(clientAddress, datacap)
       if (proposalTx !== false) {
@@ -160,7 +160,7 @@ const useApplicationActions = (
       }
 
       return await postApplicationProposal(
-        initialApplication.id,
+        initialApplication.ID,
         requestId,
         userName,
         activeAddress,
@@ -195,12 +195,12 @@ const useApplicationActions = (
     async ({ requestId, userName }) => {
       const clientAddress =
         (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
-        initialApplication.info.datacap_allocations[0].request_information.client_address.substring(
-          1,
-        )
-      const datacap =
-        initialApplication.info.datacap_allocations[0].request_information
-          .allocation_amount
+        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const datacap = initialApplication['Allocation Requests'].find(
+        (alloc) => alloc.Active,
+      )?.['Allocation Amount']
+
+      if (datacap == null) throw new Error('No active allocation found')
 
       const proposalTx = await getProposalTx(clientAddress, datacap)
 
@@ -219,7 +219,7 @@ const useApplicationActions = (
       }
 
       return await postApplicationApproval(
-        initialApplication.id,
+        initialApplication.ID,
         requestId,
         userName,
         activeAddress,
