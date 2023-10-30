@@ -208,7 +208,7 @@ const AppInfo: React.FC<ComponentProps> = ({
               const queryParams = [
                 `client=${encodeURIComponent(res?.Client.Name)}`,
                 `messageCID=${encodeURIComponent(
-                  lastDatacapAllocation.Signers[1].message_cid,
+                  lastDatacapAllocation.Signers[1]['Message CID'],
                 )}`,
                 `amount=${encodeURIComponent(
                   lastDatacapAllocation['Allocation Amount'],

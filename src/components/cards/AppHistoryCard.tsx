@@ -112,7 +112,7 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                     Proposed by -{' '}
                     <span className="text-xs text-gray-400">
                       {new Date(
-                        allocation.Signers[0].time_of_signature,
+                        allocation.Signers[0]['Created At'],
                       ).toLocaleString(undefined, {
                         year: 'numeric',
                         month: '2-digit',
@@ -125,12 +125,12 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                   </div>
                   <div>
                     <a
-                      href={`https://github.com/${allocation.Signers[0].username}`}
+                      href={`https://github.com/${allocation.Signers[0]['Github Username']}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      @{allocation.Signers[0].username}
+                      @{allocation.Signers[0]['Github Username']}
                     </a>
                   </div>
                 </div>
@@ -138,12 +138,12 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                   <div className="text-muted-foreground">Address</div>
                   <div>
                     <a
-                      href={`https://filfox.info/en/address/${allocation.Signers[0].signing_address}`}
+                      href={`https://filfox.info/en/address/${allocation.Signers[0]['Signing Address']}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      {allocation.Signers[0].signing_address}
+                      {allocation.Signers[0]['Signing Address']}
                     </a>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                     Approved by -{' '}
                     <span className="text-xs text-gray-400">
                       {new Date(
-                        allocation.Signers[1].time_of_signature,
+                        allocation.Signers[1]['Created At'],
                       ).toLocaleString(undefined, {
                         year: 'numeric',
                         month: '2-digit',
@@ -173,12 +173,12 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                   </div>
                   <div>
                     <a
-                      href={`https://github.com/${allocation.Signers[1].username}`}
+                      href={`https://github.com/${allocation.Signers[1]['Github Username']}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      @{allocation.Signers[1].username}
+                      @{allocation.Signers[1]['Github Username']}
                     </a>
                   </div>
                 </div>
@@ -186,12 +186,12 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                   <div className="text-muted-foreground">Address</div>
                   <div>
                     <a
-                      href={`https://filfox.info/en/address/${allocation.Signers[1].signing_address}`}
+                      href={`https://filfox.info/en/address/${allocation.Signers[1]['Signing Address']}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      {allocation.Signers[1].signing_address}
+                      {allocation.Signers[1]['Signing Address']}
                     </a>
                   </div>
                 </div>

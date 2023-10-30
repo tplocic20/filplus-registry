@@ -40,7 +40,7 @@ export interface Lifecycle {
 
 export interface AllocationRequest {
   ID: string
-  'Request Type': 'First' | 'Refill'
+  'Request Type': 'First' | 'Refill' | 'Remove'
   'Created At': string
   'Updated At': string
   Active: boolean
@@ -49,10 +49,10 @@ export interface AllocationRequest {
 }
 
 export interface Signer {
-  message_cid: string
-  signing_address: string
-  time_of_signature: string
-  username: string
+  'Message CID': string
+  'Signing Address': string
+  'Created At': string
+  'Github Username': string
 }
 
 export interface IWallet {
