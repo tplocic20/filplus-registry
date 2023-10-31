@@ -90,7 +90,7 @@ export const postApplicationProposal = async (
       signer: {
         signing_address: address,
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
-        time_of_signature: getCurrentDate(),
+        created_at: getCurrentDate(),
         message_cid: signature,
         github_username: userName,
       },
@@ -120,7 +120,7 @@ export const postApplicationApproval = async (
       request_id: requestId,
       signer: {
         signing_address: address,
-        time_of_signature: getCurrentDate(),
+        created_at: getCurrentDate(),
         message_cid: signature,
         github_username: userName,
       },

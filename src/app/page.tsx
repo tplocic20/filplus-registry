@@ -132,13 +132,12 @@ export default function Home(): JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Confirmed">Granted</SelectItem>
-                <SelectItem value="Approval">Ready to sign</SelectItem>
-                <SelectItem value="Proposal">Start signing datacap</SelectItem>
-                <SelectItem value="Validation">Validation</SelectItem>
-                <SelectItem value="GovernanceReview">
-                  Governance Review
+                <SelectItem value="Granted">Granted</SelectItem>
+                <SelectItem value="ReadyToSign">Ready to sign</SelectItem>
+                <SelectItem value="StartSignDatacap">
+                  Start signing datacap
                 </SelectItem>
+                <SelectItem value="Submitted">Governance Review</SelectItem>
               </SelectContent>
             </Select>
           </div>

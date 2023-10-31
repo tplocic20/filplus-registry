@@ -36,16 +36,18 @@ export const columns: Array<ColumnDef<Application>> = [
     header: 'Data Owner Industry',
   },
   {
-    accessorKey: 'Datacap.Total requested amount',
+    accessorKey: 'Datacap.Total Requested Amount',
     header: 'Requested amount',
   },
   {
     accessorKey: 'Lifecycle.State',
     header: 'Status',
     cell: ({ row }) => {
-      const requestType = row.original['Allocation Requests'].find(
+      const allocation = row.original['Allocation Requests'].find(
         (alloc) => alloc.Active,
-      )?.['Request Type']
+      )
+
+      const requestType = allocation?.['Request Type']
 
       const stateLabel =
         stateMapping[
@@ -71,7 +73,7 @@ export const columns: Array<ColumnDef<Application>> = [
                 ] ?? requestTypeColor.default
               }`}
             >
-              {requestType}
+              {requestType === 'First' ? 'Initial' : requestType}
             </span>
           )}
         </div>

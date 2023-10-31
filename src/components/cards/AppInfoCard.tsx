@@ -142,16 +142,16 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
 
     switch (application.Lifecycle.State) {
-      case 'GovernanceReview':
+      case 'Submitted':
         setButtonText('Trigger')
         break
-      case 'Proposal':
+      case 'ReadyToSign':
         setButtonText('Propose')
         break
-      case 'Approval':
+      case 'StartSignDatacap':
         setButtonText('Approve')
         break
-      case 'Confirmed':
+      case 'Granted':
         setButtonText('')
         break
       default:
@@ -191,17 +191,17 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     try {
       switch (application.Lifecycle.State) {
-        case 'GovernanceReview':
+        case 'Submitted':
           if (userName != null) {
             await mutationTrigger.mutateAsync(userName)
           }
           break
-        case 'Proposal':
+        case 'ReadyToSign':
           if (requestId != null && userName != null) {
             await mutationProposal.mutateAsync({ requestId, userName })
           }
           break
-        case 'Approval':
+        case 'StartSignDatacap':
           if (requestId != null && userName != null) {
             const res = await mutationApproval.mutateAsync({
               requestId,
@@ -228,7 +228,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           }
           break
         default:
-          console.warn('Unknown state')
+          throw new Error(
+            `Invalid application state ${application.Lifecycle.State}`,
+          )
       }
     } catch (error) {
       handleMutationError(error as Error)
@@ -368,7 +370,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
               {(walletConnected ||
-                application.Lifecycle.State === 'GovernanceReview') && (
+                application.Lifecycle.State === 'Submitted') && (
                 <Button
                   onClick={() => void handleButtonClick()}
                   disabled={isApiCalling}
@@ -379,14 +381,14 @@ const AppInfoCard: React.FC<ComponentProps> = ({
               )}
 
               {!walletConnected &&
-                application?.Lifecycle?.State !== 'GovernanceReview' && (
+                application?.Lifecycle?.State !== 'Submitted' && (
                   <Button
                     onClick={() => void handleConnectLedger()}
                     disabled={
                       isWalletConnecting ||
                       isApiCalling ||
                       application.Lifecycle.State === 'Confirmed' ||
-                      application.Lifecycle.State === 'GovernanceReview'
+                      application.Lifecycle.State === 'Submitted'
                     }
                     className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
                   >
