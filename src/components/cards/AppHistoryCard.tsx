@@ -59,14 +59,19 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
               )}
             </CardTitle>
             {allocation['Request Type'] === 'First' && (
-              <a
-                href={`https://github.com/${actor}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-gray-700 text-sm"
-              >
-                @{actor}
-              </a>
+              <>
+                <span className="text-gray-500 text-sm mr-2">
+                  Triggered by{' '}
+                </span>
+                <a
+                  href={`https://github.com/${actor}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  @{actor}
+                </a>
+              </>
             )}
           </div>
           <div className="flex items-center">
@@ -87,25 +92,8 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
 
       {isExpanded && (
         <CardContent>
-          <div className="flex flex-col space-y-2 my-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="text-sm text-muted-foreground">Triggered by</div>
-              <div>
-                <a
-                  href={`https://github.com/${actor}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  @{actor}
-                </a>
-              </div>
-            </div>
-          </div>
-
           {allocation.Signers.length > 0 && (
             <>
-              <Separator className="my-4" />
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <div className="text-sm text-muted-foreground">

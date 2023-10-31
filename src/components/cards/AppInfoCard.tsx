@@ -11,7 +11,7 @@ import { getLastDatacapAllocation, anyToBytes } from '@/lib/utils'
 import { config } from '@/config'
 import { getAllowanceForAddress } from '@/lib/dmobApi'
 import ProgressBar from '@/components/ui/progress-bar'
-import { stateMapping } from '@/lib/constants'
+import { stateMapping, stateColor } from '@/lib/constants'
 
 interface ComponentProps {
   application: Application
@@ -25,7 +25,7 @@ interface ComponentProps {
  * @prop {Application} initialApplication - The initial data for the application.
  * @prop {UseSession} session - User session data.
  */
-const AppInfo: React.FC<ComponentProps> = ({
+const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
 }) => {
   const session = useSession()
@@ -70,8 +70,15 @@ const AppInfo: React.FC<ComponentProps> = ({
         const allocationAmount = anyToBytes(
           lastAllocation?.['Allocation Amount'] ?? '0',
         )
-        const usedDatacap = allocationAmount - allowance
+        const usedDatacap =
+          allocationAmount < allowance ? 0 : allocationAmount - allowance
         const progressPercentage = (usedDatacap / allocationAmount) * 100
+        console.log({
+          allowance,
+          allocationAmount,
+          usedDatacap,
+          progressPercentage,
+        })
 
         setProgress(progressPercentage)
         setIsProgressBarLoading(false)
@@ -232,14 +239,32 @@ const AppInfo: React.FC<ComponentProps> = ({
   const stateLabel =
     stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
     application.Lifecycle.State
+  const stateClass =
+    stateColor[application.Lifecycle.State as keyof typeof stateColor] ??
+    application.Lifecycle.State
 
   const lastAllocation = getLastDatacapAllocation(application)
 
+  const getRowStyles = (index: number): string => {
+    return index % 2 === 0
+      ? 'bg-white' // Fondo blanco para filas pares
+      : 'bg-gray-100' // Fondo gris claro para filas impares
+  }
+
   return (
     <>
-      <h2 className="text-3xl font-bold tracking-tight mb-6">
-        Application Detail
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold">Application Detail</h2>
+        <a
+          href={`${config.githubRepoUrl}/issues/${application['Issue Number']}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="text-muted-foreground">
+            #{application['Issue Number']}
+          </span>
+        </a>
+      </div>
 
       {modalMessage != null && (
         <Modal
@@ -257,30 +282,79 @@ const AppInfo: React.FC<ComponentProps> = ({
 
       <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
         <CardHeader className="border-b pb-2 mb-4">
-          <a
-            href={`${config.githubRepoUrl}/issues/${application.ID}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-2xl font-bold "
-          >
-            {application.Client.Name}{' '}
-            <span className="text-muted-foreground">#{application.ID}</span>
-          </a>
+          <h2 className="text-xl font-bold">Client Info</h2>
         </CardHeader>
 
-        <CardContent className="grid gap-4 text-sm">
+        <CardContent className="grid text-sm mb-4">
           {[
+            ['Name', application.Client.Name],
             ['Region', application.Client.Region],
             ['Industry', application.Client.Industry],
             ['Website', application.Client.Website],
             ['Social', application.Client['Social Media']],
+            ['Address', application.Lifecycle['On Chain Address']],
+          ].map(([label, value], idx) => {
+            const rowStyles = getRowStyles(idx)
+            return (
+              <div
+                key={label}
+                className={`flex items-center p-2 justify-between ${rowStyles}`}
+              >
+                <p className="text-gray-600">{label}</p>
+                {label === 'Address' ? (
+                  <a
+                    href={`https://filfox.info/en/address/${value}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-gray-800"
+                  >
+                    {value}
+                  </a>
+                ) : (
+                  <p className="font-medium text-gray-800">{value}</p>
+                )}
+              </div>
+            )
+          })}
+        </CardContent>
+        <CardHeader className="border-b pb-2 mb-4">
+          <h2 className="text-xl font-bold">Datacap Info</h2>
+        </CardHeader>
+
+        <CardContent className="grid text-sm">
+          {[
             ['Status', stateLabel],
-          ].map(([label, value], idx) => (
-            <div key={idx} className="flex items-center justify-between">
-              <p className="text-gray-600">{label}</p>
-              <p className="font-medium text-gray-800">{value}</p>
-            </div>
-          ))}
+            ['Data Type', application.Datacap['Data Type']],
+            [
+              'Total Requested Amount',
+              application.Datacap['Total Requested Amount'],
+            ],
+            ['Single Size Dataset', application.Datacap['Single Size Dataset']],
+            ['Replicas', application.Datacap.Replicas.toString()],
+            ['Weekly Allocation', application.Datacap['Weekly Allocation']],
+          ].map(([label, value], idx) => {
+            const rowStyles = getRowStyles(idx)
+            return (
+              <div
+                key={idx}
+                className={`flex items-center p-2 justify-between ${rowStyles}`}
+              >
+                <p className="text-gray-600">{label}</p>
+                {label === 'Status' ? (
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+                  >
+                    {value}
+                  </span>
+                ) : (
+                  <p className="font-medium text-gray-800">{value}</p>
+                )}
+              </div>
+            )
+          })}
+        </CardContent>
+
+        <CardContent>
           {lastAllocation !== undefined && (
             <ProgressBar
               progress={progress}
@@ -326,4 +400,4 @@ const AppInfo: React.FC<ComponentProps> = ({
   )
 }
 
-export default AppInfo
+export default AppInfoCard

@@ -12,7 +12,7 @@ export const stateColor = {
 }
 
 export const allocationActiveColor = {
-  inactive: 'bg-gray-400 text-white',
+  inactive: 'bg-purple-400 text-white',
   active: 'bg-green-500 text-white',
 }
 

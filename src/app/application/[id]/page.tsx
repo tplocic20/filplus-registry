@@ -1,6 +1,7 @@
 'use client'
 import AppHistory from '@/components/AppHistory'
-import AppInfo from '@/components/AppInfo'
+import AppInfoCard from '@/components/cards/AppInfoCard'
+import ProjectInfoCard from '@/components/cards/ProjectInfoCard'
 import { getApplicationById } from '@/lib/apiClient'
 import { useQuery } from 'react-query'
 import { Spinner } from '@/components/ui/spinner'
@@ -32,7 +33,10 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     return (
       <div className="p-10">
         <div className="mb-10">
-          <AppInfo application={data} />
+          <AppInfoCard application={data} />
+        </div>
+        <div className="mb-10">
+          <ProjectInfoCard application={data} />
         </div>
         <div>
           <AppHistory
