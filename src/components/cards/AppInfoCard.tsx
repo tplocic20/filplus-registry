@@ -207,7 +207,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
               requestId,
               userName,
             })
-            if (res?.Lifecycle.State === 'Confirmed') {
+            if (res?.Lifecycle.State === 'Granted') {
               const lastDatacapAllocation = getLastDatacapAllocation(res)
               if (lastDatacapAllocation === undefined) {
                 throw new Error('No datacap allocation found')
@@ -366,7 +366,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           )}
         </CardContent>
 
-        {application?.Lifecycle?.State !== 'Confirmed' &&
+        {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
               {(walletConnected ||
@@ -387,8 +387,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                     disabled={
                       isWalletConnecting ||
                       isApiCalling ||
-                      application.Lifecycle.State === 'Confirmed' ||
-                      application.Lifecycle.State === 'Submitted'
+                      ['Granted', 'Submitted'].includes(
+                        application.Lifecycle.State,
+                      )
                     }
                     className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
                   >

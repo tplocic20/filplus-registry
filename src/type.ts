@@ -28,7 +28,13 @@ export interface Datacap {
 }
 
 export interface Lifecycle {
-  State: string
+  State:
+    | 'Submitted'
+    | 'ReadyToSign'
+    | 'StartSignDatacap'
+    | 'Granted'
+    | 'TotalDatacapReached'
+    | 'Error'
   'Validated At': string
   'Validated By': string
   Active: boolean
