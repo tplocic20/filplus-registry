@@ -5,10 +5,10 @@ export const requestTypeColor = {
 }
 
 export const stateColor = {
-  GovernanceReview: 'bg-gray-400 text-white',
-  Proposal: 'bg-sky-400 text-white',
-  Approval: 'bg-rose-400 text-white',
-  Confirmed: 'bg-purple-400 text-white',
+  Submitted: 'bg-teal-400 text-white',
+  'Start sign datacap': 'bg-sky-400 text-white',
+  'Ready to sign': 'bg-rose-400 text-white',
+  Granted: 'bg-purple-400 text-white',
 }
 
 export const allocationActiveColor = {
@@ -17,8 +17,8 @@ export const allocationActiveColor = {
 }
 
 export const stateMapping = {
-  GovernanceReview: 'Governance Review',
-  Proposal: 'Start sign datacap',
-  Approval: 'Ready to sign',
-  Confirmed: 'Granted',
+  Submitted: 'Waiting for Gov Review',
+  'Start sign datacap': 'Start sign datacap',
+  'Ready to sign': 'Ready to sign',
+  Granted: 'Granted',
 }

@@ -6,11 +6,22 @@ import { Button } from '../ui/button'
 import Link from 'next/link'
 import { shortenUrl } from '@/lib/utils'
 import { requestTypeColor, stateColor, stateMapping } from '@/lib/constants'
+import { config } from '@/config'
 
 export const columns: Array<ColumnDef<Application>> = [
   {
-    accessorKey: 'ID',
-    header: 'ID',
+    accessorKey: 'Issue Number',
+    header: 'Issue Number',
+    cell: ({ row }) => (
+      <a
+        href={`${config.githubRepoUrl}/issues/${row.original['Issue Number']}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-500"
+      >
+        {row.original['Issue Number']}
+      </a>
+    ),
   },
   {
     accessorKey: 'Client.Name',
@@ -23,6 +34,10 @@ export const columns: Array<ColumnDef<Application>> = [
   {
     accessorKey: 'Client.Industry',
     header: 'Data Owner Industry',
+  },
+  {
+    accessorKey: 'Datacap.Total requested amount',
+    header: 'Requested amount',
   },
   {
     accessorKey: 'Lifecycle.State',
@@ -71,6 +86,7 @@ export const columns: Array<ColumnDef<Application>> = [
         href={row.original.Client.Website}
         target="_blank"
         rel="noopener noreferrer"
+        className="text-blue-500"
       >
         {shortenUrl(row.original.Client.Website, 18, 8)}
       </a>
