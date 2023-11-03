@@ -19,11 +19,30 @@ export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
-    const { data } = await apiClient.get('application/active')
-    if (!Array.isArray(data)) {
+    const [activeResponse, mergedResponse] = await Promise.all([
+      apiClient.get('application/active'),
+      apiClient.get('application/merged'),
+    ])
+    if (
+      !Array.isArray(activeResponse.data) ||
+      !Array.isArray(mergedResponse.data)
+    ) {
       throw new Error('Received invalid data from the API')
     }
-    return data
+
+    const activeApplicationsMap = new Map(
+      activeResponse.data.map((app: Application) => [app.ID, app]),
+    )
+
+    // Here we merge the active applications with the merged applications prioritizing the active ones
+    const allApplications = [
+      ...activeResponse.data,
+      ...mergedResponse.data
+        .filter(([prData, app]) => !activeApplicationsMap.has(app.ID))
+        .map(([prData, mergedApp]) => mergedApp),
+    ]
+
+    return allApplications
   } catch (error: any) {
     console.error(error)
 
@@ -43,7 +62,7 @@ export const getApplicationById = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application/${id}`)
-    return data.length > 0 ? data[0] : undefined
+    if (Object.keys(data).length > 0) return data
   } catch (error) {
     console.error(error)
   }
