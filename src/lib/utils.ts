@@ -37,7 +37,7 @@ export const anyToBytes = (inputDatacap: string): number => {
     ByteConverter.value(parseFloat(datacap), ext),
     'B',
   )
-  return bytes.value
+  return Math.floor(bytes.value)
 }
 
 export const getLastDatacapAllocation = (
