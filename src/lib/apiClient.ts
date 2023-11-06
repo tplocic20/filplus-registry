@@ -12,16 +12,42 @@ export const apiClient = axios.create({
 /**
  * Get all applications
  *
- * @returns {Application[] | undefined}
+ * @returns {Promise<Application[]>}
+ * @throws {Error} When the API call fails.
  */
 export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
-    const { data } = await apiClient.get('application/active')
-    return data
-  } catch (error) {
+    const [activeResponse, mergedResponse] = await Promise.all([
+      apiClient.get('application/active'),
+      apiClient.get('application/merged'),
+    ])
+    if (
+      !Array.isArray(activeResponse.data) ||
+      !Array.isArray(mergedResponse.data)
+    ) {
+      throw new Error('Received invalid data from the API')
+    }
+
+    const activeApplicationsMap = new Map(
+      activeResponse.data.map((app: Application) => [app.ID, app]),
+    )
+
+    // Here we merge the active applications with the merged applications prioritizing the active ones
+    const allApplications = [
+      ...activeResponse.data,
+      ...mergedResponse.data
+        .filter(([prData, app]) => !activeApplicationsMap.has(app.ID))
+        .map(([prData, mergedApp]) => mergedApp),
+    ]
+
+    return allApplications
+  } catch (error: any) {
     console.error(error)
+
+    const message = error?.message ?? 'Failed to fetch applications'
+    throw new Error(message)
   }
 }
 
@@ -36,7 +62,7 @@ export const getApplicationById = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application/${id}`)
-    return data.length > 0 ? data[0] : undefined
+    if (Object.keys(data).length > 0) return data
   } catch (error) {
     console.error(error)
   }
@@ -83,9 +109,9 @@ export const postApplicationProposal = async (
       signer: {
         signing_address: address,
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
-        time_of_signature: getCurrentDate(),
+        created_at: getCurrentDate(),
         message_cid: signature,
-        username: userName,
+        github_username: userName,
       },
     })
     return data
@@ -113,9 +139,9 @@ export const postApplicationApproval = async (
       request_id: requestId,
       signer: {
         signing_address: address,
-        time_of_signature: getCurrentDate(),
+        created_at: getCurrentDate(),
         message_cid: signature,
-        username: userName,
+        github_username: userName,
       },
     })
     return data

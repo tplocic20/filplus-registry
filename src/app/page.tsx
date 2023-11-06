@@ -24,7 +24,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 
 export default function Home(): JSX.Element {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['application'],
     queryFn: getAllApplications,
   })
@@ -36,6 +36,10 @@ export default function Home(): JSX.Element {
   const notification = searchParams.get('notification')
   const router = useRouter()
   const pathName = usePathname()
+
+  useEffect(() => {
+    if (error instanceof Error) toast.error(`Error: ${error.message}`)
+  }, [error])
 
   useEffect(() => {
     const handleNotification = async (): Promise<void> => {
@@ -69,16 +73,15 @@ export default function Home(): JSX.Element {
     if (isLoading || data == null) return
 
     const filteredData = data?.filter(
-      (app) =>
-        filter === 'all' || app.info.application_lifecycle.state === filter,
+      (app) => filter === 'all' || app.Lifecycle.State === filter,
     )
 
     const fuseOptions =
       filteredData?.length > 0
         ? {
             keys: [
-              ...Object.keys(filteredData[0].info.core_information).map(
-                (key) => `info.core_information.${key}`,
+              ...Object.keys(filteredData[0].Client).map(
+                (key) => `Client.${key}`,
               ),
               'id',
             ],
@@ -102,7 +105,7 @@ export default function Home(): JSX.Element {
 
   return (
     <main className="mt-10 px-10 grid">
-      <ToastContainer position="top-right" autoClose={5000} />
+      <ToastContainer position="top-right" autoClose={10000} />
 
       <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">
@@ -129,13 +132,12 @@ export default function Home(): JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Confirmed">Granted</SelectItem>
-                <SelectItem value="Approval">Ready to sign</SelectItem>
-                <SelectItem value="Proposal">Start signing datacap</SelectItem>
-                <SelectItem value="Validation">Validation</SelectItem>
-                <SelectItem value="GovernanceReview">
-                  Governance Review
+                <SelectItem value="Granted">Granted</SelectItem>
+                <SelectItem value="ReadyToSign">Ready to sign</SelectItem>
+                <SelectItem value="StartSignDatacap">
+                  Start signing datacap
                 </SelectItem>
+                <SelectItem value="Submitted">Governance Review</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -152,7 +154,7 @@ export default function Home(): JSX.Element {
         <TabsContent value="grid">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
             {searchResults?.map((app: Application) => (
-              <AppCard application={app} key={app.id} />
+              <AppCard application={app} key={app.ID} />
             ))}
           </div>
         </TabsContent>
