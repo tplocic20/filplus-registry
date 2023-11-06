@@ -1,51 +1,92 @@
 export interface Application {
-  id: string
-  info: Info
-  _type: string
+  Version: number
+  ID: string
+  'Issue Number': string
+  Client: Client
+  Project: Record<string, unknown>
+  Datacap: Datacap
+  Lifecycle: Lifecycle
+  'Allocation Requests': AllocationRequest[]
 }
 
-export interface Info {
-  core_information: CoreInformation
-  application_lifecycle: ApplicationLifecycle
-  datacap_allocations: DatacapAllocation[]
+export interface Client {
+  Name: string
+  Region: string
+  Industry: string
+  Website: string
+  'Social Media': string
+  Role: string
 }
 
-export interface ApplicationLifecycle {
-  first_allocation_time: string
-  initial_pr_number: number
-  is_active: boolean
-  state: string
-  time_of_new_state: string
-  validated_by: string
-  validated_time: string
+export interface Datacap {
+  Type: string
+  'Data Type': string
+  'Total Requested Amount': string
+  'Single Size Dataset': string
+  Replicas: number
+  'Weekly Allocation': string
 }
 
-export interface CoreInformation {
-  data_owner_industry: string
-  data_owner_name: string
-  data_owner_region: string
-  social_media: string
-  website: string
+export interface Lifecycle {
+  State:
+    | 'Submitted'
+    | 'ReadyToSign'
+    | 'StartSignDatacap'
+    | 'Granted'
+    | 'TotalDatacapReached'
+    | 'Error'
+  'Validated At': string
+  'Validated By': string
+  Active: boolean
+  'Updated At': string
+  'Active Request ID': string | null
+  'On Chain Address': string
+  'Multisig Address': string
 }
 
-export interface DatacapAllocation {
-  request_information: RequestInformation
-  signers: Signer[]
-}
-
-export interface RequestInformation {
-  actor: string
-  allocation_amount: string
-  client_address: string
-  created_at: string
-  is_active: boolean
-  request_id: string
-  request_type: string
-  uuid: string
+export interface AllocationRequest {
+  ID: string
+  'Request Type': 'First' | 'Refill' | 'Remove'
+  'Created At': string
+  'Updated At': string
+  Active: boolean
+  'Allocation Amount': string
+  Signers: Signer[]
 }
 
 export interface Signer {
-  message_cid: string
-  signing_address: string
-  time_of_signature: string
+  'Message CID': string
+  'Signing Address': string
+  'Created At': string
+  'Github Username': string
+}
+
+export interface IWallet {
+  loadWallet: (networkIndex: number) => Promise<void>
+  selectNetwork: (nodeIndex: number) => Promise<this>
+  getAccounts: (nStart?: number) => Promise<string[]>
+  sign: (filecoinMessage: any, indexAccount: number) => Promise<any>
+  api: any
+}
+
+export interface ConfigLotusNode {
+  name: string
+  code: number
+  url: string | undefined
+  token: string | undefined
+  notaryRepo: string
+  notaryOwner: string
+  rkhMultisig: string
+  rkhtreshold: number
+  largeClientRequestAssign: string[]
+}
+
+export interface API {
+  actorAddress: (account: string) => Promise<string>
+}
+
+export interface ApiAllowanceResponse {
+  error: string
+  success: boolean
+  data: string
 }

@@ -1,8 +1,10 @@
 'use client'
 import AppHistory from '@/components/AppHistory'
-import AppInfo from '@/components/AppInfo'
+import AppInfoCard from '@/components/cards/AppInfoCard'
+import ProjectInfoCard from '@/components/cards/ProjectInfoCard'
 import { getApplicationById } from '@/lib/apiClient'
 import { useQuery } from 'react-query'
+import { Spinner } from '@/components/ui/spinner'
 
 interface ComponentProps {
   params: {
@@ -20,13 +22,28 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     queryFn: async () => await getApplicationById(id),
   })
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading)
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
+        <Spinner />
+      </div>
+    )
 
   if (data != null)
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-10 mt-10">
-        <AppHistory datacapAllocations={data.info.datacap_allocations} />
-        <AppInfo application={data} />
+      <div className="p-10">
+        <div className="mb-10">
+          <AppInfoCard application={data} />
+        </div>
+        <div className="mb-10">
+          <ProjectInfoCard application={data} />
+        </div>
+        <div>
+          <AppHistory
+            datacapAllocations={data['Allocation Requests']}
+            actor={data.Lifecycle['Validated By']}
+          />
+        </div>
       </div>
     )
 }

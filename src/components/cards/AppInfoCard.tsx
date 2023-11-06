@@ -1,19 +1,24 @@
-// AppInfoCard.tsx
-
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { Modal } from '@/components/ui/modal'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import useApplicationActions from '@/hooks/useApplicationActions'
+import { useRouter } from 'next/navigation'
+import { getLastDatacapAllocation, anyToBytes } from '@/lib/utils'
+import { config } from '@/config'
+import { getAllowanceForAddress } from '@/lib/dmobApi'
+import ProgressBar from '@/components/ui/progress-bar'
+import { stateMapping, stateColor } from '@/lib/constants'
 
 interface ComponentProps {
   application: Application
 }
 
 /**
- * Represents an information card for a specific application.
+ * Represents the information for a specific application.
  * Provides buttons to interact with the application.
  *
  * @component
@@ -31,32 +36,146 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     mutationTrigger,
     mutationProposal,
     mutationApproval,
+    walletError,
+    initializeWallet,
+    message,
   } = useApplicationActions(initialApplication)
   const [buttonText, setButtonText] = useState('')
+  const [modalMessage, setModalMessage] = useState<string | null>(null)
+  const [error, setError] = useState<boolean>(false)
+  const [walletConnected, setWalletConnected] = useState(false)
+  const [isWalletConnecting, setIsWalletConnecting] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isProgressBarLoading, setIsProgressBarLoading] = useState(true)
 
+  const router = useRouter()
+
+  useEffect(() => {
+    setModalMessage(message)
+  }, [message])
+
+  /**
+   * Fetches the datacap allowance for the application in order to calculate the progress bar.
+   */
+  useEffect(() => {
+    const fetchDatacap = async (): Promise<void> => {
+      const address = application.Lifecycle['On Chain Address']
+      const response = await getAllowanceForAddress(address)
+
+      if (response.success) {
+        const allowance = parseFloat(response.data)
+        const lastAllocation = getLastDatacapAllocation(application)
+        if (lastAllocation === undefined) return
+
+        const allocationAmount = anyToBytes(
+          lastAllocation?.['Allocation Amount'] ?? '0',
+        )
+        const usedDatacap =
+          allocationAmount < allowance ? 0 : allocationAmount - allowance
+        const progressPercentage = (usedDatacap / allocationAmount) * 100
+        console.log({
+          allowance,
+          allocationAmount,
+          usedDatacap,
+          progressPercentage,
+        })
+
+        setProgress(progressPercentage)
+        setIsProgressBarLoading(false)
+      } else {
+        console.error(response.error)
+      }
+    }
+
+    void fetchDatacap()
+  }, [application])
+
+  /**
+   * Handles the mutation error event.
+   *
+   * @param {Error} error - The error object.
+   */
+  const handleMutationError = (error: Error): void => {
+    let message = error.message
+    if (error.message.includes('Locked device')) {
+      message = 'Please unlock your ledger device.'
+    }
+    if (error.message.includes('already approved')) {
+      message = 'You have already approved this request.'
+    }
+    setModalMessage(message)
+    setError(true)
+    if (
+      error.message.includes('DisconnectedDeviceDuringOperation') ||
+      error.message.includes('Locked device')
+    ) {
+      setWalletConnected(false)
+    }
+  }
+
+  /**
+   * Handles the connect ledger button click event.
+   *
+   * @returns {Promise<void>} - Returns a promise that resolves when the wallet is connected.
+   */
+  const handleConnectLedger = async (): Promise<void> => {
+    try {
+      setIsWalletConnecting(true)
+      const ret = await initializeWallet()
+      if (ret) setWalletConnected(true)
+      setIsWalletConnecting(false)
+      return
+    } catch (error) {
+      console.error('Error initializing ledger:', error)
+    }
+    setIsWalletConnecting(false)
+    setWalletConnected(false)
+  }
+
+  /**
+   * Handles the application status change event.
+   */
   useEffect(() => {
     if (isApiCalling) {
       setButtonText('Processing...')
       return
     }
 
-    switch (application.info.application_lifecycle.state) {
-      case 'GovernanceReview':
+    switch (application.Lifecycle.State) {
+      case 'Submitted':
         setButtonText('Trigger')
         break
-      case 'Proposal':
+      case 'ReadyToSign':
         setButtonText('Propose')
         break
-      case 'Approval':
+      case 'StartSignDatacap':
         setButtonText('Approve')
         break
-      case 'Confirmed':
+      case 'Granted':
         setButtonText('')
         break
       default:
         setButtonText('')
     }
-  }, [application.info.application_lifecycle.state, isApiCalling])
+  }, [application.Lifecycle.State, isApiCalling, session])
+
+  /**
+   * Handles the wallet error event.
+   */
+  useEffect(() => {
+    if (walletError != null) {
+      setError(true)
+      setModalMessage(walletError.message)
+    }
+  }, [walletError])
+
+  /**
+   * Handles the modal close event.
+   */
+  const handleCloseModal = (): void => {
+    setError(false)
+    setModalMessage(null)
+  }
 
   /**
    * Handles the button click event.
@@ -64,96 +183,223 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    */
   const handleButtonClick = async (): Promise<void> => {
     setApiCalling(true)
-    const requestId = application.info.datacap_allocations.find(
-      (alloc) => alloc.request_information.is_active,
-    )?.request_information.request_id
+    const requestId = application['Allocation Requests'].find(
+      (alloc) => alloc.Active,
+    )?.ID
 
-    const userName = session.data?.user?.name
+    const userName = session.data?.user?.githubUsername
 
     try {
-      switch (application.info.application_lifecycle.state) {
-        case 'GovernanceReview':
+      switch (application.Lifecycle.State) {
+        case 'Submitted':
           if (userName != null) {
-            mutationTrigger.mutate(userName)
+            await mutationTrigger.mutateAsync(userName)
           }
           break
-        case 'Proposal':
-          if (requestId != null) {
-            mutationProposal.mutate(requestId)
+        case 'ReadyToSign':
+          if (requestId != null && userName != null) {
+            await mutationProposal.mutateAsync({ requestId, userName })
           }
           break
-        case 'Approval':
-          if (requestId != null) {
-            mutationApproval.mutate(requestId)
+        case 'StartSignDatacap':
+          if (requestId != null && userName != null) {
+            const res = await mutationApproval.mutateAsync({
+              requestId,
+              userName,
+            })
+            if (res?.Lifecycle.State === 'Granted') {
+              const lastDatacapAllocation = getLastDatacapAllocation(res)
+              if (lastDatacapAllocation === undefined) {
+                throw new Error('No datacap allocation found')
+              }
+              const queryParams = [
+                `client=${encodeURIComponent(res?.Client.Name)}`,
+                `messageCID=${encodeURIComponent(
+                  lastDatacapAllocation.Signers[1]['Message CID'],
+                )}`,
+                `amount=${encodeURIComponent(
+                  lastDatacapAllocation['Allocation Amount'],
+                )}`,
+                `notification=true`,
+              ].join('&')
+
+              router.push(`/?${queryParams}`)
+            }
           }
           break
         default:
-          console.warn('Unknown state')
+          throw new Error(
+            `Invalid application state ${application.Lifecycle.State}`,
+          )
       }
     } catch (error) {
-      console.error(error)
+      handleMutationError(error as Error)
     }
+    setApiCalling(false)
+  }
+
+  const stateLabel =
+    stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
+    application.Lifecycle.State
+  const stateClass =
+    stateColor[application.Lifecycle.State as keyof typeof stateColor] ??
+    application.Lifecycle.State
+
+  const lastAllocation = getLastDatacapAllocation(application)
+
+  const getRowStyles = (index: number): string => {
+    return index % 2 === 0
+      ? 'bg-white' // Fondo blanco para filas pares
+      : 'bg-gray-100' // Fondo gris claro para filas impares
   }
 
   return (
-    <div>
-      {isApiCalling && (
+    <>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold">Application Detail</h2>
+        <a
+          href={`${config.githubRepoUrl}/issues/${application['Issue Number']}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="text-muted-foreground">
+            #{application['Issue Number']}
+          </span>
+        </a>
+      </div>
+
+      {modalMessage != null && (
+        <Modal
+          message={modalMessage}
+          onClose={handleCloseModal}
+          error={error}
+        />
+      )}
+
+      {(isApiCalling || isWalletConnecting) && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <Spinner />
         </div>
       )}
-      <Card>
-        <CardHeader></CardHeader>
-        <CardContent className="grid gap-4 text-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Data Owner Name</p>
-            <p className="font-medium leading-none">
-              {application.info.core_information.data_owner_name}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Data Owner Region</p>
-            <p className="font-medium leading-none">
-              {application.info.core_information.data_owner_region}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Data Owner Industry</p>
-            <p className="font-medium leading-none">
-              {application.info.core_information.data_owner_industry}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Website</p>
-            <p className="font-medium leading-none">
-              {application.info.core_information.website}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Social</p>
-            <p className="font-medium leading-none">
-              {application.info.core_information.social_media}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Status</p>
-            <p className="font-medium leading-none">
-              {application.info.application_lifecycle.state}
-            </p>
-          </div>
+
+      <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
+        <CardHeader className="border-b pb-2 mb-4">
+          <h2 className="text-xl font-bold">Client Info</h2>
+        </CardHeader>
+
+        <CardContent className="grid text-sm mb-4">
+          {[
+            ['Name', application.Client.Name],
+            ['Region', application.Client.Region],
+            ['Industry', application.Client.Industry],
+            ['Website', application.Client.Website],
+            ['Social', application.Client['Social Media']],
+            ['Address', application.Lifecycle['On Chain Address']],
+          ].map(([label, value], idx) => {
+            const rowStyles = getRowStyles(idx)
+            return (
+              <div
+                key={label}
+                className={`flex items-center p-2 justify-between ${rowStyles}`}
+              >
+                <p className="text-gray-600">{label}</p>
+                {label === 'Address' ? (
+                  <a
+                    href={`https://filfox.info/en/address/${value}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-gray-800"
+                  >
+                    {value}
+                  </a>
+                ) : (
+                  <p className="font-medium text-gray-800">{value}</p>
+                )}
+              </div>
+            )
+          })}
         </CardContent>
-        {application.info.application_lifecycle.state !== 'Confirmed' && (
-          <CardFooter className="flex">
-            <Button
-              onClick={() => void handleButtonClick()}
-              disabled={isApiCalling}
-            >
-              {buttonText}
-            </Button>
-          </CardFooter>
-        )}
+        <CardHeader className="border-b pb-2 mb-4">
+          <h2 className="text-xl font-bold">Datacap Info</h2>
+        </CardHeader>
+
+        <CardContent className="grid text-sm">
+          {[
+            ['Status', stateLabel],
+            ['Data Type', application.Datacap['Data Type']],
+            [
+              'Total Requested Amount',
+              application.Datacap['Total Requested Amount'],
+            ],
+            ['Single Size Dataset', application.Datacap['Single Size Dataset']],
+            ['Replicas', application.Datacap.Replicas.toString()],
+            ['Weekly Allocation', application.Datacap['Weekly Allocation']],
+          ].map(([label, value], idx) => {
+            const rowStyles = getRowStyles(idx)
+            return (
+              <div
+                key={idx}
+                className={`flex items-center p-2 justify-between ${rowStyles}`}
+              >
+                <p className="text-gray-600">{label}</p>
+                {label === 'Status' ? (
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+                  >
+                    {value}
+                  </span>
+                ) : (
+                  <p className="font-medium text-gray-800">{value}</p>
+                )}
+              </div>
+            )
+          })}
+        </CardContent>
+
+        <CardContent>
+          {lastAllocation !== undefined && (
+            <ProgressBar
+              progress={progress}
+              label="Datacap used"
+              isLoading={isProgressBarLoading}
+            />
+          )}
+        </CardContent>
+
+        {application?.Lifecycle?.State !== 'Granted' &&
+          session?.data?.user?.name !== undefined && (
+            <CardFooter className="flex justify-end border-t pt-4 mt-4">
+              {(walletConnected ||
+                application.Lifecycle.State === 'Submitted') && (
+                <Button
+                  onClick={() => void handleButtonClick()}
+                  disabled={isApiCalling}
+                  className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+                >
+                  {buttonText}
+                </Button>
+              )}
+
+              {!walletConnected &&
+                application?.Lifecycle?.State !== 'Submitted' && (
+                  <Button
+                    onClick={() => void handleConnectLedger()}
+                    disabled={
+                      isWalletConnecting ||
+                      isApiCalling ||
+                      ['Granted', 'Submitted'].includes(
+                        application.Lifecycle.State,
+                      )
+                    }
+                    className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+                  >
+                    Connect Ledger
+                  </Button>
+                )}
+            </CardFooter>
+          )}
       </Card>
-    </div>
+    </>
   )
 }
 

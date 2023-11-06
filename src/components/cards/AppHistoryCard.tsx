@@ -1,57 +1,193 @@
 'use client'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { type DatacapAllocation } from '@/type'
+import { type AllocationRequest } from '@/type'
+import { requestTypeColor, allocationActiveColor } from '@/lib/constants'
+import { Separator } from '../ui/separator'
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 interface ComponentProps {
-  allocation: DatacapAllocation
+  allocation: AllocationRequest
+  actor: string
 }
 
-const AppHistoryCard: React.FC<ComponentProps> = ({ allocation }) => {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-md font-medium">Allocation Amount</CardTitle>
-        <span className="bg-green-400 p-0.5 px-1 text-sm">
-          {allocation.request_information.allocation_amount}
-        </span>
-      </CardHeader>
+const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
 
-      <CardContent>
-        <Separator className="my-2" />
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <div className="text-sm text-muted-foreground">proposed by</div>
-            <div>@nj-steve</div>
+  const toggleExpanded = (): void => {
+    setIsExpanded(!isExpanded)
+  }
+
+  return (
+    <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
+      <CardHeader
+        className={`pb-2 mb-4 flex justify-between w-full cursor-pointer ${
+          isExpanded ? 'border-b' : ''
+        }`}
+        onClick={toggleExpanded}
+      >
+        <div className="flex justify-between w-full">
+          <div>
+            <CardTitle className="text-md font-medium">
+              Allocation Amount:{' '}
+              <span className="bg-gray-200 rounded-md px-2 py-1 text-xs">
+                {allocation['Allocation Amount']}
+              </span>
+              <span
+                className={`ml-2 px-2 py-1 rounded text-xs ${
+                  requestTypeColor[
+                    allocation['Request Type'] as keyof typeof requestTypeColor
+                  ] ?? requestTypeColor.default
+                }`}
+              >
+                {allocation['Request Type'] === 'First'
+                  ? 'Initial'
+                  : allocation['Request Type']}
+              </span>
+              {allocation.Active ? (
+                <span
+                  className={`ml-2 px-2 py-1 rounded text-xs ${allocationActiveColor.active}`}
+                >
+                  Active
+                </span>
+              ) : (
+                <span
+                  className={`ml-2 px-2 py-1 rounded text-xs ${allocationActiveColor.inactive}`}
+                >
+                  Granted
+                </span>
+              )}
+            </CardTitle>
+            {allocation['Request Type'] === 'First' && (
+              <>
+                <span className="text-gray-500 text-sm mr-2">
+                  Triggered by{' '}
+                </span>
+                <a
+                  href={`https://github.com/${actor}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  @{actor}
+                </a>
+              </>
+            )}
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <div className="text-muted-foreground">signer address</div>
-            <div>
-              {allocation.signers.length > 0
-                ? allocation.signers[0].signing_address
-                : 'No signer'}
-            </div>
+          <div className="flex items-center">
+            <span className="text-gray-500 text-sm mr-2">
+              {new Date(allocation['Created At']).toLocaleString(undefined, {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
+            </span>
+            {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
           </div>
         </div>
+      </CardHeader>
 
-        {allocation.signers.length > 1 && (
-          <>
-            <Separator className="my-2" />
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="text-sm text-muted-foreground">approved by</div>
-                <div>@ronaldo</div>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="text-muted-foreground">signer address</div>
-                <div>
-                  <div>{allocation.signers[1].signing_address}</div>
+      {isExpanded && (
+        <CardContent>
+          {allocation.Signers.length > 0 && (
+            <>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-sm text-muted-foreground">
+                    Proposed by -{' '}
+                    <span className="text-xs text-gray-400">
+                      {new Date(
+                        allocation.Signers[0]['Created At'],
+                      ).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div>
+                    <a
+                      href={`https://github.com/${allocation.Signers[0]['Github Username']}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      @{allocation.Signers[0]['Github Username']}
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-muted-foreground">Address</div>
+                  <div>
+                    <a
+                      href={`https://filfox.info/en/address/${allocation.Signers[0]['Signing Address']}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      {allocation.Signers[0]['Signing Address']}
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-      </CardContent>
+            </>
+          )}
+
+          {allocation.Signers.length > 1 && (
+            <>
+              <Separator className="my-4" />
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-sm text-muted-foreground">
+                    Approved by -{' '}
+                    <span className="text-xs text-gray-400">
+                      {new Date(
+                        allocation.Signers[1]['Created At'],
+                      ).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div>
+                    <a
+                      href={`https://github.com/${allocation.Signers[1]['Github Username']}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      @{allocation.Signers[1]['Github Username']}
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-muted-foreground">Address</div>
+                  <div>
+                    <a
+                      href={`https://filfox.info/en/address/${allocation.Signers[1]['Signing Address']}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      {allocation.Signers[1]['Signing Address']}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      )}
     </Card>
   )
 }

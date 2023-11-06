@@ -1,5 +1,3 @@
-// hooks/useApplicationActions.ts
-
 import { useState } from 'react'
 import {
   useQueryClient,
@@ -11,6 +9,7 @@ import {
   postApplicationProposal,
   postApplicationApproval,
 } from '@/lib/apiClient'
+import useWallet from '@/hooks/useWallet'
 import { type Application } from '@/type'
 
 interface ApplicationActions {
@@ -26,15 +25,18 @@ interface ApplicationActions {
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >
   mutationApproval: UseMutationResult<
     Application | undefined,
     unknown,
-    string,
+    { requestId: string; userName: string },
     unknown
   >
+  walletError: Error | null
+  initializeWallet: () => Promise<boolean>
+  message: string | null
 }
 
 /**
@@ -53,6 +55,15 @@ const useApplicationActions = (
   const [isApiCalling, setApiCalling] = useState(false)
   const [application, setApplication] =
     useState<Application>(initialApplication)
+  const {
+    walletError,
+    initializeWallet,
+    activeAddress,
+    getProposalTx,
+    sendProposal,
+    sendApproval,
+    message,
+  } = useWallet()
 
   /**
    * Updates the application cache with the latest data from the API.
@@ -70,7 +81,7 @@ const useApplicationActions = (
       (oldData: Application[] | undefined) => {
         if (oldData == null) return []
         const indexToUpdate = oldData?.findIndex(
-          (app) => app.id === apiResponse?.id,
+          (app) => app.ID === apiResponse?.ID,
         )
         if (apiResponse != null && indexToUpdate !== -1) {
           oldData[indexToUpdate] = apiResponse
@@ -79,7 +90,7 @@ const useApplicationActions = (
       },
     )
 
-    queryClient.setQueryData(['posts', initialApplication.id], () => {
+    queryClient.setQueryData(['posts', initialApplication.ID], () => {
       return apiResponse
     })
   }
@@ -99,7 +110,7 @@ const useApplicationActions = (
     unknown
   >(
     async (userName: string) =>
-      await postApplicationTrigger(initialApplication.id, userName),
+      await postApplicationTrigger(initialApplication.ID, userName),
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -121,12 +132,41 @@ const useApplicationActions = (
    */
   const mutationProposal = useMutation<
     Application | undefined,
-    unknown,
-    string,
+    Error,
+    { requestId: string; userName: string },
     unknown
   >(
-    async (requestId: string) =>
-      await postApplicationProposal(initialApplication.id, requestId),
+    async ({ requestId, userName }) => {
+      const clientAddress =
+        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const datacap = initialApplication['Allocation Requests'].find(
+        (alloc) => alloc.Active,
+      )?.['Allocation Amount']
+
+      if (datacap == null) throw new Error('No active allocation found')
+
+      const proposalTx = await getProposalTx(clientAddress, datacap)
+      if (proposalTx !== false) {
+        throw new Error('This datacap allocation is already proposed')
+      }
+
+      const messageCID = await sendProposal(clientAddress, datacap)
+
+      if (messageCID == null) {
+        throw new Error(
+          'Error sending proposal. Please try again or contact support.',
+        )
+      }
+
+      return await postApplicationProposal(
+        initialApplication.ID,
+        requestId,
+        userName,
+        activeAddress,
+        messageCID,
+      )
+    },
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -148,12 +188,44 @@ const useApplicationActions = (
    */
   const mutationApproval = useMutation<
     Application | undefined,
-    unknown,
-    string,
+    Error,
+    { requestId: string; userName: string },
     unknown
   >(
-    async (requestId: string) =>
-      await postApplicationApproval(initialApplication.id, requestId),
+    async ({ requestId, userName }) => {
+      const clientAddress =
+        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const datacap = initialApplication['Allocation Requests'].find(
+        (alloc) => alloc.Active,
+      )?.['Allocation Amount']
+
+      if (datacap == null) throw new Error('No active allocation found')
+
+      const proposalTx = await getProposalTx(clientAddress, datacap)
+
+      if (proposalTx === false) {
+        throw new Error(
+          'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
+        )
+      }
+
+      const messageCID = await sendApproval(proposalTx as string)
+
+      if (messageCID == null) {
+        throw new Error(
+          'Error sending proposal. Please try again or contact support.',
+        )
+      }
+
+      return await postApplicationApproval(
+        initialApplication.ID,
+        requestId,
+        userName,
+        activeAddress,
+        messageCID,
+      )
+    },
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -172,6 +244,9 @@ const useApplicationActions = (
     mutationTrigger,
     mutationProposal,
     mutationApproval,
+    walletError,
+    initializeWallet,
+    message,
   }
 }
 

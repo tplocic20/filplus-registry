@@ -1,5 +1,6 @@
 import { type Application } from '@/type'
 import axios from 'axios'
+import { getCurrentDate } from './utils'
 
 /**
  * Axios client instance with a predefined base URL for making API requests.
@@ -11,16 +12,42 @@ export const apiClient = axios.create({
 /**
  * Get all applications
  *
- * @returns {Application[] | undefined}
+ * @returns {Promise<Application[]>}
+ * @throws {Error} When the API call fails.
  */
 export const getAllApplications = async (): Promise<
   Application[] | undefined
 > => {
   try {
-    const { data } = await apiClient.get('application')
-    return data
-  } catch (error) {
+    const [activeResponse, mergedResponse] = await Promise.all([
+      apiClient.get('application/active'),
+      apiClient.get('application/merged'),
+    ])
+    if (
+      !Array.isArray(activeResponse.data) ||
+      !Array.isArray(mergedResponse.data)
+    ) {
+      throw new Error('Received invalid data from the API')
+    }
+
+    const activeApplicationsMap = new Map(
+      activeResponse.data.map((app: Application) => [app.ID, app]),
+    )
+
+    // Here we merge the active applications with the merged applications prioritizing the active ones
+    const allApplications = [
+      ...activeResponse.data,
+      ...mergedResponse.data
+        .filter(([prData, app]) => !activeApplicationsMap.has(app.ID))
+        .map(([prData, mergedApp]) => mergedApp),
+    ]
+
+    return allApplications
+  } catch (error: any) {
     console.error(error)
+
+    const message = error?.message ?? 'Failed to fetch applications'
+    throw new Error(message)
   }
 }
 
@@ -35,7 +62,7 @@ export const getApplicationById = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application/${id}`)
-    return data
+    if (Object.keys(data).length > 0) return data
   } catch (error) {
     console.error(error)
   }
@@ -72,14 +99,19 @@ export const postApplicationTrigger = async (
 export const postApplicationProposal = async (
   id: string,
   requestId: string,
+  userName: string,
+  address: string,
+  signature: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/propose`, {
       request_id: requestId,
       signer: {
-        signing_address: 'signing_address_here',
-        time_of_signature: 'time_of_signature_here',
-        message_cid: 'message_cid_here',
+        signing_address: address,
+        // Datetime in format YYYY-MM-DDTHH:MM:SSZ
+        created_at: getCurrentDate(),
+        message_cid: signature,
+        github_username: userName,
       },
     })
     return data
@@ -98,14 +130,18 @@ export const postApplicationProposal = async (
 export const postApplicationApproval = async (
   id: string,
   requestId: string,
+  userName: string,
+  address: string,
+  signature: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/approve`, {
       request_id: requestId,
       signer: {
-        signing_address: 'signing_address_here',
-        time_of_signature: 'time_of_signature_here',
-        message_cid: 'message_cid_here',
+        signing_address: address,
+        created_at: getCurrentDate(),
+        message_cid: signature,
+        github_username: userName,
       },
     })
     return data
