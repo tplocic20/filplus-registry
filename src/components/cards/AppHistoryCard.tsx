@@ -15,15 +15,16 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const toggleExpanded = (): void => {
+    if (allocation.Signers.length === 0) return
     setIsExpanded(!isExpanded)
   }
 
   return (
     <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
       <CardHeader
-        className={`pb-2 mb-4 flex justify-between w-full cursor-pointer ${
-          isExpanded ? 'border-b' : ''
-        }`}
+        className={`pb-2 mb-4 flex justify-between w-full ${
+          allocation.Signers.length !== 0 ? 'cursor-pointer' : ''
+        } ${isExpanded ? 'border-b' : ''}`}
         onClick={toggleExpanded}
       >
         <div className="flex justify-between w-full">
@@ -85,7 +86,13 @@ const AppHistoryCard: React.FC<ComponentProps> = ({ allocation, actor }) => {
                 second: '2-digit',
               })}
             </span>
-            {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+            {allocation.Signers.length === 0 ? (
+              <></>
+            ) : isExpanded ? (
+              <FaChevronUp />
+            ) : (
+              <FaChevronDown />
+            )}
           </div>
         </div>
       </CardHeader>

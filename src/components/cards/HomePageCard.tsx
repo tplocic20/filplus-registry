@@ -21,7 +21,13 @@ const HomePageCard: React.FC<Props> = ({ application }) => {
       <CardContent className="grid gap-4 text-sm">
         <div className="flex items-center justify-between border-b border-gray-300 pb-2">
           <p className="text-gray-500">ID</p>
-          <p className="font-medium leading-none">{application.ID}</p>
+          <p className="font-medium leading-none">
+            {application.ID.length < 13
+              ? application.ID
+              : application.ID.substring(0, 6) +
+                '...' +
+                application.ID.substring(application.ID.length - 6)}
+          </p>
         </div>
         <div className="flex items-center justify-between border-b border-gray-300 pb-2">
           <p className="text-gray-500">Data Owner Name</p>

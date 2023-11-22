@@ -26,9 +26,11 @@ const ProjectInfoCard: React.FC<ProjectInfoCardProps> = ({ application }) => {
       <h2 className="text-3xl font-bold tracking-tight mb-6">
         Project Information
       </h2>
-      <Card className="bg-gray-50 p-4 rounded-lg shadow-md">
+      <Card className="bg-gray-50 p-4 rounded-lg shadow-md select-none">
         <CardHeader
-          className="border-b pb-2 mb-4 flex flex-row justify-between items-center cursor-pointer"
+          className={`${
+            isExpanded ? 'border-b' : ''
+          } pb-2 mb-4 flex flex-row justify-between items-center cursor-pointer`}
           onClick={toggleExpanded}
         >
           <h2 className="text-xl font-bold">{projectId as string}</h2>
@@ -48,8 +50,14 @@ const ProjectInfoCard: React.FC<ProjectInfoCardProps> = ({ application }) => {
                   key={idx}
                   className={`flex items-center justify-between p-2 ${rowStyles}`}
                 >
-                  <p className="text-gray-600">{label}</p>
-                  <p className="font-medium text-gray-800">{value as string}</p>
+                  <div className="w-2/3">
+                    <p className="text-gray-600">{label}</p>
+                  </div>
+                  <div className="flex w-1/3 justify-end">
+                    <p className="font-medium text-gray-800 text-right">
+                      {value as string}
+                    </p>
+                  </div>
                 </div>
               )
             })}
