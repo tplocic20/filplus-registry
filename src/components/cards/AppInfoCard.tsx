@@ -68,7 +68,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         if (lastAllocation === undefined) return
 
         const allocationAmount = anyToBytes(
-          lastAllocation?.['Allocation Amount'] ?? '0',
+          lastAllocation['Allocation Amount'] ?? '0',
         )
         const usedDatacap =
           allocationAmount < allowance ? 0 : allocationAmount - allowance
@@ -83,7 +83,12 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         setProgress(progressPercentage)
         setIsProgressBarLoading(false)
       } else {
-        console.error(response.error)
+        if (response.error === 'Address not found') {
+          setIsProgressBarLoading(false)
+          setProgress(100)
+        } else {
+          console.error(response.error)
+        }
       }
     }
 
@@ -255,7 +260,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
   return (
     <>
-      <div className="mb-6">
+      <div className="flex items-center flex-col mb-6">
         <h2 className="text-3xl font-bold">Application Detail</h2>
         <a
           href={`${config.githubRepoUrl}/issues/${application['Issue Number']}`}
