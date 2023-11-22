@@ -84,7 +84,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         setIsProgressBarLoading(false)
       } else {
         if (response.error === 'Address not found') {
-          setProgress(0)
+          setIsProgressBarLoading(false)
+          setProgress(100)
         } else {
           console.error(response.error)
         }
