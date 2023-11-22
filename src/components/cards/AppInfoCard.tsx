@@ -294,6 +294,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
             ['Industry', application.Client.Industry],
             ['Website', application.Client.Website],
             ['Social', application.Client['Social Media']],
+            ['Social Media Type', application.Client['Social Media Type']],
             ['Address', application.Lifecycle['On Chain Address']],
           ].map(([label, value], idx) => {
             const rowStyles = getRowStyles(idx)
