@@ -97,7 +97,7 @@ export const columns: Array<ColumnDef<Application>> = [
   {
     id: 'detail',
     cell: ({ row }) => (
-      <Button asChild className="flex w-1/2 mx-auto">
+      <Button asChild className="flex sm:w-4/5 lg:w-2/3 xl:w-3/5 mx-auto">
         <Link href={`/application/${row.original.ID}`}>Detail</Link>
       </Button>
     ),

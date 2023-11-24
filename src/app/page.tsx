@@ -105,7 +105,7 @@ export default function Home(): JSX.Element {
     )
 
   return (
-    <main className="mt-10 px-10 grid">
+    <main className="mt-10 px-10 grid select-none">
       <ToastContainer position="top-right" autoClose={10000} />
 
       <Tabs defaultValue="table">
