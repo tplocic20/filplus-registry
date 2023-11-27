@@ -91,9 +91,10 @@ export default function Home(): JSX.Element {
     const fuse = new Fuse(filteredData, fuseOptions)
     const results = fuse.search(searchTerm)
 
-    setSearchResults(
-      searchTerm !== '' ? results.map((result) => result.item) : filteredData,
-    )
+    const searchResults =
+      searchTerm !== '' ? results.map((result) => result.item) : filteredData
+
+    setSearchResults(searchResults)
   }, [searchTerm, filter, data, isLoading])
 
   if (isLoading)
@@ -104,7 +105,7 @@ export default function Home(): JSX.Element {
     )
 
   return (
-    <main className="mt-10 px-10 grid">
+    <main className="mt-10 px-10 grid select-none">
       <ToastContainer position="top-right" autoClose={10000} />
 
       <Tabs defaultValue="table">
@@ -152,7 +153,7 @@ export default function Home(): JSX.Element {
           <DataTable columns={columns} data={searchResults} />
         </TabsContent>
         <TabsContent value="grid">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
             {searchResults?.map((app: Application) => (
               <AppCard application={app} key={app.ID} />
             ))}
