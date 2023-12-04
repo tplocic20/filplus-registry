@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Modal } from '@/components/ui/modal'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { type Application } from '@/type'
+import { LDNActorType, type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import useApplicationActions from '@/hooks/useApplicationActions'
 import { useRouter } from 'next/navigation'
@@ -12,6 +12,7 @@ import { config } from '@/config'
 import { getAllowanceForAddress } from '@/lib/dmobApi'
 import ProgressBar from '@/components/ui/progress-bar'
 import { stateMapping, stateColor } from '@/lib/constants'
+import { fetchLDNActors } from '@/lib/apiClient'
 
 interface ComponentProps {
   application: Application
@@ -47,6 +48,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   const [isWalletConnecting, setIsWalletConnecting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isProgressBarLoading, setIsProgressBarLoading] = useState(true)
+  const [currentActorType, setCurrentActorType] = useState<LDNActorType | ''>(
+    '',
+  )
 
   const router = useRouter()
 
@@ -58,7 +62,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Fetches the datacap allowance for the application in order to calculate the progress bar.
    */
   useEffect(() => {
-    const fetchDatacap = async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const address = application.Lifecycle['On Chain Address']
       const response = await getAllowanceForAddress(address)
 
@@ -90,10 +94,29 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           console.error(response.error)
         }
       }
+    })()
+  }, [application])
+
+  useEffect(() => {
+    if (
+      session.data?.user?.githubUsername === null ||
+      session.data?.user?.githubUsername === undefined ||
+      session.data?.user?.githubUsername === ''
+    ) {
+      setCurrentActorType('')
+      return
     }
 
-    void fetchDatacap()
-  }, [application])
+    const ghUserName = session.data.user.githubUsername
+    void (async () => {
+      const ldnActorsLists = await fetchLDNActors()
+      if (ldnActorsLists?.governance_gh_handles?.includes(ghUserName)) {
+        setCurrentActorType(LDNActorType.GovernanceTeam)
+      } else if (ldnActorsLists?.notary_gh_handles?.includes(ghUserName)) {
+        setCurrentActorType(LDNActorType.Notary)
+      }
+    })()
+  }, [session.data?.user?.githubUsername])
 
   /**
    * Handles the mutation error event.
@@ -148,21 +171,29 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     switch (application.Lifecycle.State) {
       case 'Submitted':
-        setButtonText('Trigger')
+        if (currentActorType === LDNActorType.GovernanceTeam)
+          setButtonText('Trigger')
+        else setButtonText('')
         break
+
       case 'ReadyToSign':
-        setButtonText('Propose')
+        if (currentActorType === LDNActorType.Notary) setButtonText('Propose')
+        else setButtonText('')
         break
+
       case 'StartSignDatacap':
-        setButtonText('Approve')
+        if (currentActorType === LDNActorType.Notary) setButtonText('Approve')
+        else setButtonText('')
         break
+
       case 'Granted':
         setButtonText('')
         break
+
       default:
         setButtonText('')
     }
-  }, [application.Lifecycle.State, isApiCalling, session])
+  }, [application.Lifecycle.State, isApiCalling, session, currentActorType])
 
   /**
    * Handles the wallet error event.
@@ -375,18 +406,20 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
-              {(walletConnected ||
-                application.Lifecycle.State === 'Submitted') && (
-                <Button
-                  onClick={() => void handleButtonClick()}
-                  disabled={isApiCalling}
-                  className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
-                >
-                  {buttonText}
-                </Button>
-              )}
+              {buttonText &&
+                (walletConnected ||
+                  application.Lifecycle.State === 'Submitted') && (
+                  <Button
+                    onClick={() => void handleButtonClick()}
+                    disabled={isApiCalling}
+                    className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+                  >
+                    {buttonText}
+                  </Button>
+                )}
 
               {!walletConnected &&
+                currentActorType === LDNActorType.Notary &&
                 application?.Lifecycle?.State !== 'Submitted' && (
                   <Button
                     onClick={() => void handleConnectLedger()}

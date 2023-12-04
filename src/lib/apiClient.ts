@@ -1,4 +1,4 @@
-import { type Application } from '@/type'
+import { type LDNActorsResponse, type Application } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
 
@@ -147,5 +147,22 @@ export const postApplicationApproval = async (
     return data
   } catch (error) {
     console.error(error)
+  }
+}
+
+/**
+ * Retrieves an application based on its ID.
+ *
+ * @returns A promise that resolves with a JSON containing 2 lists: notaries info, governance team info.
+ */
+export const fetchLDNActors = async (): Promise<
+  LDNActorsResponse | undefined
+> => {
+  try {
+    const { data } = await apiClient.get(`ldn-actors`)
+
+    return data
+  } catch (e) {
+    console.error(e)
   }
 }
