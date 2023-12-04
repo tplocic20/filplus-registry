@@ -20,6 +20,7 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
   const { data, isLoading } = useQuery({
     queryKey: ['posts', id],
     queryFn: async () => await getApplicationById(id),
+    refetchInterval: 10000
   })
 
   if (isLoading)
