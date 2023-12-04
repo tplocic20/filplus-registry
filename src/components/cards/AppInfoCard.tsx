@@ -48,7 +48,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   const [isWalletConnecting, setIsWalletConnecting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isProgressBarLoading, setIsProgressBarLoading] = useState(true)
-  const [currentActorType, setCurrentActorType] = useState<LDNActorType | ''>('');
+  const [currentActorType, setCurrentActorType] = useState<LDNActorType | ''>(
+    '',
+  )
 
   const router = useRouter()
 
@@ -60,7 +62,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Fetches the datacap allowance for the application in order to calculate the progress bar.
    */
   useEffect(() => {
-    (async (): Promise<void> => {
+    void (async (): Promise<void> => {
       const address = application.Lifecycle['On Chain Address']
       const response = await getAllowanceForAddress(address)
 
@@ -92,18 +94,25 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           console.error(response.error)
         }
       }
-    })();
+    })()
   }, [application])
 
   useEffect(() => {
-    if (!session.data?.user?.githubUsername) return setCurrentActorType('');
+    if (
+      session.data?.user?.githubUsername === null ||
+      session.data?.user?.githubUsername === undefined ||
+      session.data?.user?.githubUsername === ''
+    ) {
+      setCurrentActorType('')
+      return
+    }
 
-    const ghUserName = session.data.user.githubUsername;
-    (async () => {
-      const ldnActorsLists = await fetchLDNActors();
-      if (ldnActorsLists?.governance_gh_handles.includes(ghUserName)) {
+    const ghUserName = session.data.user.githubUsername
+    void (async () => {
+      const ldnActorsLists = await fetchLDNActors()
+      if (ldnActorsLists?.governance_gh_handles?.includes(ghUserName)) {
         setCurrentActorType(LDNActorType.GovernanceTeam)
-      } else if (ldnActorsLists?.notary_gh_handles.includes(ghUserName)) {
+      } else if (ldnActorsLists?.notary_gh_handles?.includes(ghUserName)) {
         setCurrentActorType(LDNActorType.Notary)
       }
     })()
@@ -163,29 +172,24 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     switch (application.Lifecycle.State) {
       case 'Submitted':
         if (currentActorType === LDNActorType.GovernanceTeam)
-          setButtonText('Trigger');
-        else 
-          setButtonText('');
+          setButtonText('Trigger')
+        else setButtonText('')
         break
-      
+
       case 'ReadyToSign':
-        if (currentActorType === LDNActorType.Notary)
-          setButtonText('Propose')
-        else 
-          setButtonText('');
+        if (currentActorType === LDNActorType.Notary) setButtonText('Propose')
+        else setButtonText('')
         break
 
       case 'StartSignDatacap':
-        if (currentActorType === LDNActorType.Notary)
-          setButtonText('Approve')
-        else 
-          setButtonText('');
+        if (currentActorType === LDNActorType.Notary) setButtonText('Approve')
+        else setButtonText('')
         break
-      
+
       case 'Granted':
         setButtonText('')
         break
-      
+
       default:
         setButtonText('')
     }
@@ -402,18 +406,20 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex justify-end border-t pt-4 mt-4">
-              {(buttonText && (walletConnected ||
-                application.Lifecycle.State === 'Submitted')) && (
-                <Button
-                  onClick={() => void handleButtonClick()}
-                  disabled={isApiCalling}
-                  className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
-                >
-                  {buttonText}
-                </Button>
-              )}
+              {buttonText &&
+                (walletConnected ||
+                  application.Lifecycle.State === 'Submitted') && (
+                  <Button
+                    onClick={() => void handleButtonClick()}
+                    disabled={isApiCalling}
+                    className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+                  >
+                    {buttonText}
+                  </Button>
+                )}
 
               {!walletConnected &&
+                currentActorType === LDNActorType.Notary &&
                 application?.Lifecycle?.State !== 'Submitted' && (
                   <Button
                     onClick={() => void handleConnectLedger()}
