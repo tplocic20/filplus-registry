@@ -91,3 +91,13 @@ export interface ApiAllowanceResponse {
   success: boolean
   data: string
 }
+
+export interface LDNActorsResponse {
+  governance_gh_handles: string[]
+  notary_gh_handles: string[]
+}
+
+export enum LDNActorType {
+  GovernanceTeam = 'GovernanceTeam',
+  Notary = 'Notary',
+}
