@@ -10,7 +10,7 @@ const localConfig = {
       notaryRepo: 'filecoin-notaries-onboarding',
       notaryOwner: 'keyko-io',
       rkhMultisig: 'f080',
-      rkhtreshold: 1,
+      rkhtreshold: 2,
       largeClientRequestAssign: ['clriesco'],
     },
   ],
