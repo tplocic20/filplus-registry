@@ -9,7 +9,7 @@ const localConfig = {
       token: process.env.NEXT_PUBLIC_NODE_TOKEN,
       notaryRepo: 'filecoin-notaries-onboarding',
       notaryOwner: 'keyko-io',
-      rkhMultisig: 'f2yk6skf7mpk5mkp3bk5qyy5pmxgic6hfp55z2wcq',
+      rkhMultisig: 'f080',
       rkhtreshold: 1,
       largeClientRequestAssign: ['clriesco'],
     },
