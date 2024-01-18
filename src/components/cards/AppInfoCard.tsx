@@ -172,7 +172,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     switch (application.Lifecycle.State) {
       case 'Submitted':
         if (currentActorType === LDNActorType.GovernanceTeam)
-          setButtonText('Trigger')
+          setButtonText('Complete governance review')
         else setButtonText('')
         break
 
