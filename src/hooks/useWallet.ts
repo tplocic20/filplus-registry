@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { LedgerWallet } from '@/lib/wallet/LedgerWallet'
 import { BurnerWallet } from '@/lib/wallet/BurnerWallet'
 import { config } from '../config'
-import { NodeConfig, type IWallet } from '@/type'
+import { type NodeConfig, type IWallet } from '@/type'
 import { anyToBytes } from '@/lib/utils'
 
 /**
@@ -101,14 +101,12 @@ const useWallet = (): WalletState => {
 
       try {
         const walletClass: string = config.walletClass
-        if (!nodeConfig || !nodeConfig.nodeAddress || !nodeConfig.nodeToken) {
+        let newWallet: Record<string, any>
+        if (!nodeConfig?.nodeAddress || !nodeConfig.nodeToken) {
           const networkIndex = initNetworkIndex()
-          var newWallet = walletClassRegistry[walletClass](
-            networkIndex,
-            setMessage,
-          )
+          newWallet = walletClassRegistry[walletClass](networkIndex, setMessage)
         } else {
-          var newWallet = walletClassRegistry[walletClass](
+          newWallet = walletClassRegistry[walletClass](
             0,
             setMessage,
             nodeConfig.nodeAddress,
@@ -123,7 +121,7 @@ const useWallet = (): WalletState => {
           setAccounts(allAccounts)
         }
         setMessage(null)
-        setWallet(newWallet)
+        setWallet(newWallet as IWallet)
         setMultisigAddress(newWallet.lotusNode.rkhMultisig)
         return true
       } catch (err) {

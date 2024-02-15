@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 import { useAllocator } from '@/lib/AllocatorProvider'
 import { getAllApplications } from '@/lib/apiClient'
-import { Allocator, type Application } from '@/type'
+import { type Allocator, type Application } from '@/type'
 import Fuse from 'fuse.js'
 import { Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -35,13 +35,18 @@ export default function Home(): JSX.Element {
       selectedAllocator?.repo,
       selectedAllocator?.owner,
     ],
-    queryFn: () =>
-      getAllApplications(selectedAllocator!.repo, selectedAllocator!.owner),
+    queryFn: async () =>
+      selectedAllocator
+        ? await getAllApplications(
+            selectedAllocator.repo,
+            selectedAllocator.owner,
+          )
+        : [],
     enabled: !!selectedAllocator,
   })
 
   useEffect(() => {
-    if (!allocators || !allocators.length) return
+    if (!allocators?.length) return
     setSelectedAllocator(allocators[0])
   }, [allocators])
 
@@ -160,7 +165,11 @@ export default function Home(): JSX.Element {
             </Select>
             {allocators && allocators.length > 1 && (
               <Select
-                value={selectedAllocator?.owner + '-' + selectedAllocator?.repo}
+                value={
+                  selectedAllocator
+                    ? selectedAllocator.owner + '-' + selectedAllocator.repo
+                    : ''
+                }
                 onValueChange={(value) => {
                   setSelectedAllocator(
                     allocators.find((e) => e.owner + '-' + e.repo === value),

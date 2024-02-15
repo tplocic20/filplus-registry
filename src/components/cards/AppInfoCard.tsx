@@ -1,19 +1,18 @@
-import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
-import { Modal } from '@/components/ui/modal'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
+import ProgressBar from '@/components/ui/progress-bar'
+import { Spinner } from '@/components/ui/spinner'
+import { config } from '@/config'
+import useApplicationActions from '@/hooks/useApplicationActions'
+import { useAllocator } from '@/lib/AllocatorProvider'
+import { stateColor, stateMapping } from '@/lib/constants'
+import { getAllowanceForAddress } from '@/lib/dmobApi'
+import { anyToBytes, getLastDatacapAllocation } from '@/lib/utils'
 import { LDNActorType, type Application } from '@/type'
 import { useSession } from 'next-auth/react'
-import useApplicationActions from '@/hooks/useApplicationActions'
 import { useRouter } from 'next/navigation'
-import { getLastDatacapAllocation, anyToBytes } from '@/lib/utils'
-import { config } from '@/config'
-import { getAllowanceForAddress } from '@/lib/dmobApi'
-import ProgressBar from '@/components/ui/progress-bar'
-import { stateMapping, stateColor } from '@/lib/constants'
-import { fetchLDNActors } from '@/lib/apiClient'
-import { useAllocator } from '@/lib/AllocatorProvider'
+import { useEffect, useState } from 'react'
 
 interface ComponentProps {
   application: Application
@@ -118,10 +117,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     const ghUserName = session.data.user.githubUsername
     const currentAllocator = allocators.find((e) => e.repo === repo)
-    if (
-      currentAllocator &&
-      currentAllocator.verifiers_gh_handles.includes(ghUserName)
-    ) {
+    if (currentAllocator?.verifiers_gh_handles.includes(ghUserName)) {
       setCurrentActorType(LDNActorType.Verifier)
     }
   }, [session.data?.user?.githubUsername, allocators])
@@ -179,7 +175,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Handles the application status change event.
    */
   useEffect(() => {
-    if (currentActorType !== LDNActorType.Verifier) return setButtonText('')
+    if (currentActorType !== LDNActorType.Verifier) {
+      setButtonText('')
+      return
+    }
 
     if (isApiCalling) {
       setButtonText('Processing...')

@@ -29,6 +29,7 @@ export abstract class BaseWallet implements IWallet {
     }
     if (nodeAddress && nodeToken) {
       this.lotusNode = {
+        code: 461,
         token: nodeToken,
         url: nodeAddress,
       }

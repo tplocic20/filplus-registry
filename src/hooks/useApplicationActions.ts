@@ -10,7 +10,7 @@ import {
   postApplicationApproval,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
-import { NodeConfig, type Application } from '@/type'
+import { type NodeConfig, type Application } from '@/type'
 
 interface ApplicationActions {
   application: Application

@@ -1,14 +1,16 @@
 'use client'
 
+import { requestTypeColor, stateColor, stateMapping } from '@/lib/constants'
+import { shortenUrl } from '@/lib/utils'
 import { type Application } from '@/type'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Button } from '../ui/button'
 import Link from 'next/link'
-import { shortenUrl } from '@/lib/utils'
-import { requestTypeColor, stateColor, stateMapping } from '@/lib/constants'
-import { config } from '@/config'
+import { Button } from '../ui/button'
 
-export const generateColumns = (owner: string, repo: string) => {
+export const generateColumns = (
+  owner: string,
+  repo: string,
+): ColumnDef<Application>[] => {
   const columns: Array<ColumnDef<Application>> = [
     {
       accessorKey: 'Issue Number',

@@ -1,4 +1,8 @@
-import { type LDNActorsResponse, type Application, Allocator } from '@/type'
+import {
+  type LDNActorsResponse,
+  type Application,
+  type Allocator,
+} from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
 
@@ -202,7 +206,7 @@ export const fetchLDNActors = async (): Promise<
  *
  * @returns A promise that resolves with a JSON containing the details of all allocators using the Fil+ infrastructure.
  */
-export const getAllocators = async (): Promise<Array<Allocator>> => {
+export const getAllocators = async (): Promise<Allocator[]> => {
   try {
     const { data } = await apiClient.get(`allocators`)
 

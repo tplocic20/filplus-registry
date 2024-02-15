@@ -18,7 +18,6 @@ interface ComponentProps {
 const ApplicationDetailPage: React.FC<ComponentProps> = ({
   params: { id, repo, owner },
 }) => {
-  const { allocators } = useAllocator()
   const { data, isLoading } = useQuery({
     queryKey: ['posts', id],
     queryFn: async () => await getApplicationByParams(id, repo, owner),

@@ -1,19 +1,14 @@
 'use client'
-import { Allocator } from '@/type'
-import React, {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
+import { type Allocator } from '@/type'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { getAllocators } from './apiClient'
 import { useQuery } from 'react-query'
 import { useSession } from 'next-auth/react'
 
 // Define the shape of your context data for TypeScript
 interface AllocatorContextType {
-  allocators: Array<Allocator> // Specify a more specific type instead of any if possible
+  allocators: Allocator[] // Specify a more specific type instead of any if possible
   setAllocators: React.Dispatch<React.SetStateAction<any>> // Adjust the type as needed
 }
 
@@ -33,27 +28,24 @@ const AllocatorContext =
 
 export const AllocatorProvider: React.FunctionComponent<
   AllocatorProviderProps
-> = ({ children }) => {
+> = ({ children }): React.ReactElement => {
   const [allocators, setAllocators] = useState<any>(null) // Adjust the type as needed
   const session = useSession()
 
-  const {
-    data: allocatorsData,
-    isLoading: allocatorsLoading,
-    error: allocatorsError,
-  } = useQuery({
+  const { data: allocatorsData } = useQuery({
     queryKey: ['allocator'],
     queryFn: getAllocators,
   })
 
   useEffect(() => {
     if (!allocatorsData || !session?.data?.user?.githubUsername) return
+    const githubUsername = session.data.user.githubUsername.toLowerCase()
 
     const allocatorsDataParsed = allocatorsData.filter((e) =>
       e.verifiers_gh_handles
         .split(',')
-        .map((e) => e.trim().toLowerCase())
-        .includes(session.data.user.githubUsername?.toLowerCase()!),
+        .map((handle) => handle.trim().toLowerCase())
+        .includes(githubUsername),
     )
 
     setAllocators(allocatorsDataParsed)
