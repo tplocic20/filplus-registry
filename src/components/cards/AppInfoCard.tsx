@@ -16,9 +16,9 @@ import { fetchLDNActors } from '@/lib/apiClient'
 import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ComponentProps {
-  application: Application;
-  repo: string;
-  owner: string;
+  application: Application
+  repo: string
+  owner: string
 }
 
 /**
@@ -34,10 +34,10 @@ interface ComponentProps {
 const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
   repo,
-  owner
+  owner,
 }) => {
   const session = useSession()
-  const { allocators } = useAllocator();
+  const { allocators } = useAllocator()
   const {
     application,
     isApiCalling,
@@ -106,7 +106,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   }, [application])
 
   useEffect(() => {
-    if (!allocators ||
+    if (
+      !allocators ||
       session.data?.user?.githubUsername === null ||
       session.data?.user?.githubUsername === undefined ||
       session.data?.user?.githubUsername === ''
@@ -116,8 +117,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
 
     const ghUserName = session.data.user.githubUsername
-    const currentAllocator = allocators.find(e => e.repo === repo);
-    if (currentAllocator && currentAllocator.verifiers_gh_handles.includes(ghUserName)) {
+    const currentAllocator = allocators.find((e) => e.repo === repo)
+    if (
+      currentAllocator &&
+      currentAllocator.verifiers_gh_handles.includes(ghUserName)
+    ) {
       setCurrentActorType(LDNActorType.Verifier)
     }
   }, [session.data?.user?.githubUsername, allocators])
@@ -155,8 +159,12 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       const currentAllocator = allocators.find((e) => e.repo === repo)
       if (!currentAllocator) return
       setIsWalletConnecting(true)
-      const { node_address: nodeAddress, node_token: nodeToken } = currentAllocator; 
-      const ret = nodeAddress && nodeToken ? await initializeWallet({nodeAddress, nodeToken}) : await initializeWallet()
+      const { node_address: nodeAddress, node_token: nodeToken } =
+        currentAllocator
+      const ret =
+        nodeAddress && nodeToken
+          ? await initializeWallet({ nodeAddress, nodeToken })
+          : await initializeWallet()
       if (ret) setWalletConnected(true)
       setIsWalletConnecting(false)
       return
@@ -171,8 +179,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Handles the application status change event.
    */
   useEffect(() => {
-    if (currentActorType !== LDNActorType.Verifier)
-      return setButtonText('')
+    if (currentActorType !== LDNActorType.Verifier) return setButtonText('')
 
     if (isApiCalling) {
       setButtonText('Processing...')
@@ -181,16 +188,16 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     switch (application.Lifecycle.State) {
       case 'Submitted':
-        setButtonText('Complete governance review');
-        break;
+        setButtonText('Complete governance review')
+        break
 
       case 'ReadyToSign':
-        setButtonText('Propose');
-        break;
+        setButtonText('Propose')
+        break
 
       case 'StartSignDatacap':
-        setButtonText('Approve');
-        break;
+        setButtonText('Approve')
+        break
 
       case 'Granted':
         setButtonText('')

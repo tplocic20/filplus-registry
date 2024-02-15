@@ -25,19 +25,24 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export default function Home(): JSX.Element {
-  const { allocators } = useAllocator();
+  const { allocators } = useAllocator()
 
   const [selectedAllocator, setSelectedAllocator] = useState<Allocator>()
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['application', selectedAllocator?.repo, selectedAllocator?.owner],
-    queryFn: () => getAllApplications(selectedAllocator!.repo, selectedAllocator!.owner),
+    queryKey: [
+      'application',
+      selectedAllocator?.repo,
+      selectedAllocator?.owner,
+    ],
+    queryFn: () =>
+      getAllApplications(selectedAllocator!.repo, selectedAllocator!.owner),
     enabled: !!selectedAllocator,
   })
 
   useEffect(() => {
-    if (!allocators || !allocators.length) return;
-    setSelectedAllocator(allocators[0]);
+    if (!allocators || !allocators.length) return
+    setSelectedAllocator(allocators[0])
   }, [allocators])
 
   const [filter, setFilter] = useState('all')
@@ -153,28 +158,36 @@ export default function Home(): JSX.Element {
                 <SelectItem value="Submitted">Governance Review</SelectItem>
               </SelectContent>
             </Select>
-            {allocators && allocators.length > 1 && <Select
-              value={selectedAllocator?.owner + '-' + selectedAllocator?.repo}
-              onValueChange={(value) => {
-                setSelectedAllocator(allocators.find((e) => e.owner + '-' + e.repo === value))
-              }}
-            >
-              <SelectTrigger id="area" className="w-[240px]">
-                <SelectValue placeholder="Select Repository" />
-              </SelectTrigger>
-              <SelectContent>
-                {allocators.map((e) => (
-                  <SelectItem 
-                    key={e.owner + '-' + e.repo} 
-                    value={e.owner + '-' + e.repo}
-                  >
-                    {(e.owner + '/' + e.repo).length > 26 
-                      ? e.owner.slice(0, 7) + '...'+ '/' + e.repo.slice(0, 12) + '...' 
-                      : e.owner + '/' + e.repo }
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>}
+            {allocators && allocators.length > 1 && (
+              <Select
+                value={selectedAllocator?.owner + '-' + selectedAllocator?.repo}
+                onValueChange={(value) => {
+                  setSelectedAllocator(
+                    allocators.find((e) => e.owner + '-' + e.repo === value),
+                  )
+                }}
+              >
+                <SelectTrigger id="area" className="w-[240px]">
+                  <SelectValue placeholder="Select Repository" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allocators.map((e) => (
+                    <SelectItem
+                      key={e.owner + '-' + e.repo}
+                      value={e.owner + '-' + e.repo}
+                    >
+                      {(e.owner + '/' + e.repo).length > 26
+                        ? e.owner.slice(0, 7) +
+                          '...' +
+                          '/' +
+                          e.repo.slice(0, 12) +
+                          '...'
+                        : e.owner + '/' + e.repo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <TabsList>
@@ -183,20 +196,31 @@ export default function Home(): JSX.Element {
           </TabsList>
         </div>
 
-        {selectedAllocator &&
+        {selectedAllocator && (
           <TabsContent value="table">
-            <DataTable columns={generateColumns(selectedAllocator.owner, selectedAllocator.repo)} data={searchResults} />
+            <DataTable
+              columns={generateColumns(
+                selectedAllocator.owner,
+                selectedAllocator.repo,
+              )}
+              data={searchResults}
+            />
           </TabsContent>
-        }
-        {selectedAllocator &&
+        )}
+        {selectedAllocator && (
           <TabsContent value="grid">
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
               {searchResults?.map((app: Application) => (
-                <AppCard application={app} repo={selectedAllocator.repo} owner={selectedAllocator.owner} key={app.ID} />
+                <AppCard
+                  application={app}
+                  repo={selectedAllocator.repo}
+                  owner={selectedAllocator.owner}
+                  key={app.ID}
+                />
               ))}
             </div>
           </TabsContent>
-        }
+        )}
       </Tabs>
     </main>
   )

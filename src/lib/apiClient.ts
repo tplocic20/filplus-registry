@@ -15,22 +15,23 @@ export const apiClient = axios.create({
  * @returns {Promise<Application[]>}
  * @throws {Error} When the API call fails.
  */
-export const getAllApplications = async (repo: string, owner: string): Promise<
-  Application[] | undefined
-> => {
+export const getAllApplications = async (
+  repo: string,
+  owner: string,
+): Promise<Application[] | undefined> => {
   try {
     const [activeResponse, mergedResponse] = await Promise.all([
       apiClient.get('application/active', {
         params: {
           repo,
-          owner
-        }
+          owner,
+        },
       }),
       apiClient.get('application/merged', {
         params: {
           repo,
-          owner
-        }
+          owner,
+        },
       }),
     ])
     if (
@@ -70,7 +71,7 @@ export const getAllApplications = async (repo: string, owner: string): Promise<
 export const getApplicationByParams = async (
   id: string,
   repo: string,
-  owner: string
+  owner: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.get(`application`, {
@@ -78,7 +79,7 @@ export const getApplicationByParams = async (
         id,
         owner,
         repo,
-      }
+      },
     })
     if (Object.keys(data).length > 0) return data
   } catch (error) {
@@ -97,13 +98,13 @@ export const postApplicationTrigger = async (
   id: string,
   actor: string,
   repo: string,
-  owner: string
+  owner: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`application/${id}/trigger`, {
       actor,
       repo,
-      owner
+      owner,
     })
     return data
   } catch (error) {
@@ -207,7 +208,7 @@ export const getAllocators = async (): Promise<Array<Allocator>> => {
 
     return data
   } catch (e) {
-    console.error(e);
-    throw e;
+    console.error(e)
+    throw e
   }
 }

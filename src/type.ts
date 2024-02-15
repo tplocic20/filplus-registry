@@ -98,21 +98,21 @@ export interface LDNActorsResponse {
 }
 
 export enum LDNActorType {
-  Verifier = "verifier"
+  Verifier = 'verifier',
 }
 
 export interface Allocator {
-  id: number;
-  owner: string;
-  repo: string;
-  installation_id: string;
-  multisig_address: string;
-  verifiers_gh_handles: string;
-  node_address?: string;
-  node_token?: string;
+  id: number
+  owner: string
+  repo: string
+  installation_id: string
+  multisig_address: string
+  verifiers_gh_handles: string
+  node_address?: string
+  node_token?: string
 }
 
 export interface NodeConfig {
-  nodeAddress: string;
-  nodeToken: string;
+  nodeAddress: string
+  nodeToken: string
 }

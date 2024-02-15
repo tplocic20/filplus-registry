@@ -53,7 +53,7 @@ interface ApplicationActions {
 const useApplicationActions = (
   initialApplication: Application,
   repo: string,
-  owner: string
+  owner: string,
 ): ApplicationActions => {
   const queryClient = useQueryClient()
   const [isApiCalling, setApiCalling] = useState(false)
@@ -114,7 +114,12 @@ const useApplicationActions = (
     unknown
   >(
     async (userName: string) =>
-      await postApplicationTrigger(initialApplication.ID, userName, repo, owner),
+      await postApplicationTrigger(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+      ),
     {
       onSuccess: (data) => {
         setApiCalling(false)
@@ -137,7 +142,7 @@ const useApplicationActions = (
   const mutationProposal = useMutation<
     Application | undefined,
     Error,
-    { requestId: string; userName: string; },
+    { requestId: string; userName: string },
     unknown
   >(
     async ({ requestId, userName }) => {

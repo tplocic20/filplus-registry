@@ -9,16 +9,16 @@ import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ComponentProps {
   params: {
-    id: string;
-    repo: string;
-    owner: string;
+    id: string
+    repo: string
+    owner: string
   }
 }
 
 const ApplicationDetailPage: React.FC<ComponentProps> = ({
   params: { id, repo, owner },
 }) => {
-  const { allocators } = useAllocator();
+  const { allocators } = useAllocator()
   const { data, isLoading } = useQuery({
     queryKey: ['posts', id],
     queryFn: async () => await getApplicationByParams(id, repo, owner),

@@ -13,7 +13,7 @@ const walletClassRegistry: Record<string, any> = {
     networkIndex: number,
     setMessage: (message: string | null) => void,
     nodeAddress?: string,
-    nodeConfig?: string
+    nodeConfig?: string,
   ) => new LedgerWallet(networkIndex, setMessage, nodeAddress, nodeConfig),
   BurnerWallet: (
     networkIndex: number,
@@ -94,47 +94,50 @@ const useWallet = (): WalletState => {
    * @param {}
    * @returns {Promise<boolean>} - A promise that resolves when the wallet is initialized.
    */
-  const initializeWallet = useCallback(async (nodeConfig?: NodeConfig) => {
-    setWalletError(null)
-    setMessage('Initializing wallet...')
+  const initializeWallet = useCallback(
+    async (nodeConfig?: NodeConfig) => {
+      setWalletError(null)
+      setMessage('Initializing wallet...')
 
-    try {
-      const walletClass: string = config.walletClass
-      if (!nodeConfig || !nodeConfig.nodeAddress || !nodeConfig.nodeToken) {
-        const networkIndex = initNetworkIndex()
-        var newWallet = walletClassRegistry[walletClass](
-          networkIndex,
-          setMessage,
-        )
-      } else {
-        var newWallet = walletClassRegistry[walletClass](
-          0,
-          setMessage,
-          nodeConfig.nodeAddress,
-          nodeConfig.nodeToken
-        )
-      }
-      await newWallet.loadWallet()
-      const allAccounts = await newWallet.getAccounts()
+      try {
+        const walletClass: string = config.walletClass
+        if (!nodeConfig || !nodeConfig.nodeAddress || !nodeConfig.nodeToken) {
+          const networkIndex = initNetworkIndex()
+          var newWallet = walletClassRegistry[walletClass](
+            networkIndex,
+            setMessage,
+          )
+        } else {
+          var newWallet = walletClassRegistry[walletClass](
+            0,
+            setMessage,
+            nodeConfig.nodeAddress,
+            nodeConfig.nodeToken,
+          )
+        }
+        await newWallet.loadWallet()
+        const allAccounts = await newWallet.getAccounts()
 
-      if (allAccounts.length > 0) {
-        setActiveAccountIndexState(0)
-        setAccounts(allAccounts)
+        if (allAccounts.length > 0) {
+          setActiveAccountIndexState(0)
+          setAccounts(allAccounts)
+        }
+        setMessage(null)
+        setWallet(newWallet)
+        setMultisigAddress(newWallet.lotusNode.rkhMultisig)
+        return true
+      } catch (err) {
+        console.error('Error initializing wallet:', err)
+        if (err instanceof Error) {
+          setWalletError(err)
+        } else {
+          setWalletError(new Error('Unknown error'))
+        }
+        return false
       }
-      setMessage(null)
-      setWallet(newWallet)
-      setMultisigAddress(newWallet.lotusNode.rkhMultisig)
-      return true
-    } catch (err) {
-      console.error('Error initializing wallet:', err)
-      if (err instanceof Error) {
-        setWalletError(err)
-      } else {
-        setWalletError(new Error('Unknown error'))
-      }
-      return false
-    }
-  }, [initNetworkIndex])
+    },
+    [initNetworkIndex],
+  )
 
   /**
    * Sign a message using the currently initialized wallet.

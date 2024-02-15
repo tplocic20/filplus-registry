@@ -30,7 +30,7 @@ export abstract class BaseWallet implements IWallet {
     if (nodeAddress && nodeToken) {
       this.lotusNode = {
         token: nodeToken,
-        url: nodeAddress
+        url: nodeAddress,
       }
     } else this.lotusNode = config.lotusNodes[networkIndex]
   }

@@ -9,7 +9,6 @@ import { requestTypeColor, stateColor, stateMapping } from '@/lib/constants'
 import { config } from '@/config'
 
 export const generateColumns = (owner: string, repo: string) => {
-
   const columns: Array<ColumnDef<Application>> = [
     {
       accessorKey: 'Issue Number',
@@ -48,14 +47,14 @@ export const generateColumns = (owner: string, repo: string) => {
         const allocation = row.original['Allocation Requests'].find(
           (alloc) => alloc.Active,
         )
-  
+
         const requestType = allocation?.['Request Type']
-  
+
         const stateLabel =
           stateMapping[
             row.original.Lifecycle.State as keyof typeof stateMapping
           ] ?? row.original.Lifecycle.State
-  
+
         return (
           <div className="flex items-center">
             <span
@@ -100,7 +99,9 @@ export const generateColumns = (owner: string, repo: string) => {
       id: 'detail',
       cell: ({ row }) => (
         <Button asChild className="flex sm:w-4/5 lg:w-2/3 xl:w-3/5 mx-auto">
-          <Link href={`/application/${owner}/${repo}/${row.original.ID}`}>Detail</Link>
+          <Link href={`/application/${owner}/${repo}/${row.original.ID}`}>
+            Detail
+          </Link>
         </Button>
       ),
     },
@@ -108,4 +109,3 @@ export const generateColumns = (owner: string, repo: string) => {
 
   return columns
 }
-
