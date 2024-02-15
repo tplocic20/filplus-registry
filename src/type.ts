@@ -99,7 +99,6 @@ export interface LDNActorsResponse {
 
 export enum LDNActorType {
   Verifier = "verifier"
-  Notary = 'Notary',
 }
 
 export interface Allocator {
