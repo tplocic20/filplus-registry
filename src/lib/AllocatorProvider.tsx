@@ -36,7 +36,7 @@ export const AllocatorProvider: React.FunctionComponent<AllocatorProviderProps> 
   useEffect(() => {
     if (!allocatorsData || !session?.data?.user?.githubUsername) return;
 
-    const allocatorsDataParsed = allocatorsData.filter((e) => e.verifiers_gh_handles.split(',').map((e) => e.toLowerCase()).includes(session.data.user.githubUsername?.toLowerCase()!))
+    const allocatorsDataParsed = allocatorsData.filter((e) => e.verifiers_gh_handles.split(',').map((e) => e.trim().toLowerCase()).includes(session.data.user.githubUsername?.toLowerCase()!))
 
     setAllocators(allocatorsDataParsed);
   }, [allocatorsData, session?.data?.user?.githubUsername])

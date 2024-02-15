@@ -1,4 +1,4 @@
-import { type LDNActorsResponse, type Application, BlockchainMetrics, UserMetrics, ApplicationMetrics, DatacapMetrics, HealthcheckMetrics, Allocator } from '@/type'
+import { type LDNActorsResponse, type Application, UserMetrics, ApplicationMetrics, DatacapMetrics, HealthcheckMetrics, Allocator } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
 
