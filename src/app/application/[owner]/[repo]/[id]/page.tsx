@@ -36,7 +36,7 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     return (
       <div className="p-10">
         <div className="mb-10">
-          <AppInfoCard application={data} repo={repo} owner={allocators.find((e) => e.repo === repo)!.owner} />
+          <AppInfoCard application={data} repo={repo} owner={owner} />
         </div>
         <div className="mb-10">
           <ProjectInfoCard application={data} />
