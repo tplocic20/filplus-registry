@@ -152,8 +152,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    */
   const handleConnectLedger = async (): Promise<void> => {
     try {
+      const currentAllocator = allocators.find((e) => e.repo === repo)
+      if (!currentAllocator) return
       setIsWalletConnecting(true)
-      const ret = await initializeWallet()
+      const { node_address: nodeAddress, node_token: nodeToken } = currentAllocator; 
+      const ret = nodeAddress && nodeToken ? await initializeWallet({nodeAddress, nodeToken}) : await initializeWallet()
       if (ret) setWalletConnected(true)
       setIsWalletConnecting(false)
       return

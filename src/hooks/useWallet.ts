@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { LedgerWallet } from '@/lib/wallet/LedgerWallet'
 import { BurnerWallet } from '@/lib/wallet/BurnerWallet'
 import { config } from '../config'
-import { type IWallet } from '@/type'
+import { NodeConfig, type IWallet } from '@/type'
 import { anyToBytes } from '@/lib/utils'
 
 /**
@@ -12,7 +12,9 @@ const walletClassRegistry: Record<string, any> = {
   LedgerWallet: (
     networkIndex: number,
     setMessage: (message: string | null) => void,
-  ) => new LedgerWallet(networkIndex, setMessage),
+    nodeAddress?: string,
+    nodeConfig?: string
+  ) => new LedgerWallet(networkIndex, setMessage, nodeAddress, nodeConfig),
   BurnerWallet: (
     networkIndex: number,
     setMessage: (message: string | null) => void,
@@ -35,7 +37,7 @@ interface WalletState {
   sendProposal: (clientAddress: string, datacap: string) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
-  initializeWallet: () => Promise<boolean>
+  initializeWallet: (nodeConfig?: NodeConfig) => Promise<boolean>
   message: string | null
   setMessage: (message: string | null) => void
 }
@@ -89,19 +91,29 @@ const useWallet = (): WalletState => {
    * Initializes the wallet using the given class name.
    *
    * @param {string} WalletClass - The name of the wallet class to initialize.
+   * @param {}
    * @returns {Promise<boolean>} - A promise that resolves when the wallet is initialized.
    */
-  const initializeWallet = useCallback(async () => {
+  const initializeWallet = useCallback(async (nodeConfig?: NodeConfig) => {
     setWalletError(null)
     setMessage('Initializing wallet...')
 
     try {
       const walletClass: string = config.walletClass
-      const networkIndex = initNetworkIndex()
-      const newWallet = walletClassRegistry[walletClass](
-        networkIndex,
-        setMessage,
-      )
+      if (!nodeConfig || !nodeConfig.nodeAddress || !nodeConfig.nodeToken) {
+        const networkIndex = initNetworkIndex()
+        var newWallet = walletClassRegistry[walletClass](
+          networkIndex,
+          setMessage,
+        )
+      } else {
+        var newWallet = walletClassRegistry[walletClass](
+          0,
+          setMessage,
+          nodeConfig.nodeAddress,
+          nodeConfig.nodeToken
+        )
+      }
       await newWallet.loadWallet()
       const allAccounts = await newWallet.getAccounts()
 
