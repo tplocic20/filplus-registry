@@ -58,4 +58,5 @@ export const AllocatorProvider: React.FunctionComponent<
   )
 }
 
-export const useAllocator = () => useContext(AllocatorContext)
+export const useAllocator = (): AllocatorContextType =>
+  useContext(AllocatorContext)

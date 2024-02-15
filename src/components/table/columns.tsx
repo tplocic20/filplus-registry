@@ -10,7 +10,7 @@ import { Button } from '../ui/button'
 export const generateColumns = (
   owner: string,
   repo: string,
-): ColumnDef<Application>[] => {
+): Array<ColumnDef<Application>> => {
   const columns: Array<ColumnDef<Application>> = [
     {
       accessorKey: 'Issue Number',

@@ -2,10 +2,9 @@
 import AppHistory from '@/components/AppHistory'
 import AppInfoCard from '@/components/cards/AppInfoCard'
 import ProjectInfoCard from '@/components/cards/ProjectInfoCard'
+import { Spinner } from '@/components/ui/spinner'
 import { getApplicationByParams } from '@/lib/apiClient'
 import { useQuery } from 'react-query'
-import { Spinner } from '@/components/ui/spinner'
-import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ComponentProps {
   params: {
