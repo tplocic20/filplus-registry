@@ -7,10 +7,12 @@ import { shortenUrl } from '@/lib/utils'
 import { requestTypeColor, stateColor } from '@/lib/constants'
 
 interface Props {
-  application: Application
+  application: Application;
+  repo: string;
+  owner: string;
 }
 
-const HomePageCard: React.FC<Props> = ({ application }) => {
+const HomePageCard: React.FC<Props> = ({ application, repo, owner }) => {
   const requestType = application['Allocation Requests'].find(
     (alloc) => alloc.Active,
   )?.['Request Type']
@@ -86,7 +88,7 @@ const HomePageCard: React.FC<Props> = ({ application }) => {
 
       <CardFooter className="flex">
         <Button asChild className="w-full">
-          <Link href={`/application/${application.ID}`}>Detail</Link>
+          <Link href={`/application/${owner}/${repo}/${application.ID}`}>Detail</Link>
         </Button>
       </CardFooter>
     </Card>

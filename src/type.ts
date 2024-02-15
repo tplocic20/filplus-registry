@@ -101,3 +101,12 @@ export enum LDNActorType {
   GovernanceTeam = 'GovernanceTeam',
   Notary = 'Notary',
 }
+
+export interface Allocator {
+  id: number;
+  owner: string;
+  repo: string;
+  installation_id: string;
+  multisig_address: string;
+  verifiers_gh_handles: string;
+}

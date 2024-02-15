@@ -13,9 +13,12 @@ import { getAllowanceForAddress } from '@/lib/dmobApi'
 import ProgressBar from '@/components/ui/progress-bar'
 import { stateMapping, stateColor } from '@/lib/constants'
 import { fetchLDNActors } from '@/lib/apiClient'
+import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ComponentProps {
-  application: Application
+  application: Application;
+  repo: string;
+  owner: string;
 }
 
 /**
@@ -24,12 +27,17 @@ interface ComponentProps {
  *
  * @component
  * @prop {Application} initialApplication - The initial data for the application.
+ * @prop {string} repo - The repo containing the application.
+ * @prop {string} owner - The owner of the repo containing the application.
  * @prop {UseSession} session - User session data.
  */
 const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
+  repo,
+  owner
 }) => {
   const session = useSession()
+  const { allocators } = useAllocator();
   const {
     application,
     isApiCalling,
@@ -40,7 +48,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     walletError,
     initializeWallet,
     message,
-  } = useApplicationActions(initialApplication)
+  } = useApplicationActions(initialApplication, repo, owner)
   const [buttonText, setButtonText] = useState('')
   const [modalMessage, setModalMessage] = useState<string | null>(null)
   const [error, setError] = useState<boolean>(false)
@@ -98,7 +106,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   }, [application])
 
   useEffect(() => {
-    if (
+    if (!allocators ||
       session.data?.user?.githubUsername === null ||
       session.data?.user?.githubUsername === undefined ||
       session.data?.user?.githubUsername === ''
@@ -108,15 +116,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
 
     const ghUserName = session.data.user.githubUsername
-    void (async () => {
-      const ldnActorsLists = await fetchLDNActors()
-      if (ldnActorsLists?.governance_gh_handles?.includes(ghUserName)) {
-        setCurrentActorType(LDNActorType.GovernanceTeam)
-      } else if (ldnActorsLists?.notary_gh_handles?.includes(ghUserName)) {
-        setCurrentActorType(LDNActorType.Notary)
-      }
-    })()
-  }, [session.data?.user?.githubUsername])
+    const currentAllocator = allocators.find(e => e.repo === repo);
+    if (currentAllocator && currentAllocator.verifiers_gh_handles.includes(ghUserName)) {
+      setCurrentActorType(LDNActorType.Verifier)
+    }
+  }, [session.data?.user?.githubUsername, allocators])
 
   /**
    * Handles the mutation error event.
@@ -164,6 +168,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
    * Handles the application status change event.
    */
   useEffect(() => {
+    if (currentActorType !== LDNActorType.Verifier)
+      return setButtonText('')
+
     if (isApiCalling) {
       setButtonText('Processing...')
       return
@@ -171,20 +178,16 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     switch (application.Lifecycle.State) {
       case 'Submitted':
-        if (currentActorType === LDNActorType.GovernanceTeam)
-          setButtonText('Complete governance review')
-        else setButtonText('')
-        break
+        setButtonText('Complete governance review');
+        break;
 
       case 'ReadyToSign':
-        if (currentActorType === LDNActorType.Notary) setButtonText('Propose')
-        else setButtonText('')
-        break
+        setButtonText('Propose');
+        break;
 
       case 'StartSignDatacap':
-        if (currentActorType === LDNActorType.Notary) setButtonText('Approve')
-        else setButtonText('')
-        break
+        setButtonText('Approve');
+        break;
 
       case 'Granted':
         setButtonText('')
@@ -419,7 +422,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                 )}
 
               {!walletConnected &&
-                currentActorType === LDNActorType.Notary &&
+                currentActorType === LDNActorType.Verifier &&
                 application?.Lifecycle?.State !== 'Submitted' && (
                   <Button
                     onClick={() => void handleConnectLedger()}
