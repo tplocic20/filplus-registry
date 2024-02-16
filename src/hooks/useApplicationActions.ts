@@ -10,7 +10,7 @@ import {
   postApplicationApproval,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
-import { type NodeConfig, type Application } from '@/type'
+import { type Application } from '@/type'
 
 interface ApplicationActions {
   application: Application
@@ -35,7 +35,7 @@ interface ApplicationActions {
     unknown
   >
   walletError: Error | null
-  initializeWallet: (nodeConfig?: NodeConfig) => Promise<boolean>
+  initializeWallet: (multisigAddress?: string) => Promise<boolean>
   message: string | null
 }
 
