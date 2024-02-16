@@ -27,7 +27,7 @@ export abstract class BaseWallet implements IWallet {
       networkIndex = 0
     }
     this.lotusNode = config.lotusNodes[networkIndex]
-    if (multisigAddress) this.lotusNode.rkhMultisig = multisigAddress;
+    if (multisigAddress) this.lotusNode.rkhMultisig = multisigAddress
   }
 
   /**

@@ -13,12 +13,7 @@ const walletClassRegistry: Record<string, any> = {
     networkIndex: number,
     setMessage: (message: string | null) => void,
     multisigAddress?: string,
-  ) =>
-    new LedgerWallet(
-      networkIndex,
-      setMessage,
-      multisigAddress,
-    ),
+  ) => new LedgerWallet(networkIndex, setMessage, multisigAddress),
   BurnerWallet: (
     networkIndex: number,
     setMessage: (message: string | null) => void,

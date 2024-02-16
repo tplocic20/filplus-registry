@@ -155,12 +155,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       const currentAllocator = allocators.find((e) => e.repo === repo)
       if (!currentAllocator) return
       setIsWalletConnecting(true)
-      const {
-        multisig_address: multisigAddress,
-      } = currentAllocator
+      const { multisig_address: multisigAddress } = currentAllocator
       const ret = multisigAddress
-          ? await initializeWallet(multisigAddress)
-          : await initializeWallet()
+        ? await initializeWallet(multisigAddress)
+        : await initializeWallet()
       if (ret) setWalletConnected(true)
       setIsWalletConnecting(false)
       return
