@@ -7,6 +7,8 @@ export interface Application {
   Datacap: Datacap
   Lifecycle: Lifecycle
   'Allocation Requests': AllocationRequest[]
+  repo: string
+  owner: string
 }
 
 export interface Client {
