@@ -11,8 +11,8 @@ export const generateColumns = (repoConfig?: {
   owner: string
   repo: string
 }): Array<ColumnDef<Application>> => {
-  const repo = repoConfig?.owner
-  const owner = repoConfig?.repo
+  const repo = repoConfig?.repo
+  const owner = repoConfig?.owner
 
   const columns: Array<ColumnDef<Application>> = [
     {
