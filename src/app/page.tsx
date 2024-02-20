@@ -14,10 +14,11 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 import { useAllocator } from '@/lib/AllocatorProvider'
-import { getAllApplications } from '@/lib/apiClient'
+import { getAllApplications, getApplicationsForRepo } from '@/lib/apiClient'
 import { type Allocator, type Application } from '@/type'
 import Fuse from 'fuse.js'
 import { Search } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
@@ -26,23 +27,30 @@ import 'react-toastify/dist/ReactToastify.css'
 
 export default function Home(): JSX.Element {
   const { allocators } = useAllocator()
+  const session = useSession()
 
   const [selectedAllocator, setSelectedAllocator] = useState<Allocator>()
+  const [allReposSelected, setAllReposSelected] = useState<boolean>(false)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [
-      'application',
-      selectedAllocator?.repo,
-      selectedAllocator?.owner,
-    ],
-    queryFn: async () =>
-      selectedAllocator
-        ? await getAllApplications(
-            selectedAllocator.repo,
-            selectedAllocator.owner,
-          )
-        : [],
-    enabled: !!selectedAllocator,
+    queryKey: ['application', selectedAllocator, session.status],
+    queryFn: async () => {
+      if (selectedAllocator && session.status === 'authenticated')
+        return await getApplicationsForRepo(
+          selectedAllocator.repo,
+          selectedAllocator.owner,
+        )
+
+      if (
+        (!selectedAllocator && session.status === 'unauthenticated') ||
+        (!selectedAllocator && allReposSelected)
+      )
+        return await getAllApplications()
+
+      return []
+    },
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   })
 
   useEffect(() => {
@@ -171,6 +179,11 @@ export default function Home(): JSX.Element {
                     : ''
                 }
                 onValueChange={(value) => {
+                  if (!value) {
+                    setAllReposSelected(true)
+                    setSelectedAllocator(undefined)
+                    return
+                  }
                   setSelectedAllocator(
                     allocators.find((e) => e.owner + '-' + e.repo === value),
                   )
@@ -180,6 +193,9 @@ export default function Home(): JSX.Element {
                   <SelectValue placeholder="Select Repository" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem key={'All repositories'} value={''}>
+                    All repositories
+                  </SelectItem>
                   {allocators.map((e) => (
                     <SelectItem
                       key={e.owner + '-' + e.repo}
@@ -205,31 +221,31 @@ export default function Home(): JSX.Element {
           </TabsList>
         </div>
 
-        {selectedAllocator && (
-          <TabsContent value="table">
-            <DataTable
-              columns={generateColumns(
-                selectedAllocator.owner,
-                selectedAllocator.repo,
-              )}
-              data={searchResults}
-            />
-          </TabsContent>
-        )}
-        {selectedAllocator && (
-          <TabsContent value="grid">
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
-              {searchResults?.map((app: Application) => (
-                <AppCard
-                  application={app}
-                  repo={selectedAllocator.repo}
-                  owner={selectedAllocator.owner}
-                  key={app.ID}
-                />
-              ))}
-            </div>
-          </TabsContent>
-        )}
+        <TabsContent value="table">
+          <DataTable
+            columns={generateColumns(
+              selectedAllocator
+                ? {
+                    owner: selectedAllocator.owner,
+                    repo: selectedAllocator.repo,
+                  }
+                : undefined,
+            )}
+            data={searchResults}
+          />
+        </TabsContent>
+        <TabsContent value="grid">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ">
+            {searchResults?.map((app: Application) => (
+              <AppCard
+                application={app}
+                repo={selectedAllocator?.repo}
+                owner={selectedAllocator?.owner}
+                key={app.ID}
+              />
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
     </main>
   )

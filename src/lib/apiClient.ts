@@ -14,12 +14,15 @@ export const apiClient = axios.create({
 })
 
 /**
- * Get all applications
+ * Get applications for repo
+ *
+ * @param repo - The repo containing the applications to retrieve.
+ * @param owner - The owner containing the repo.
  *
  * @returns {Promise<Application[]>}
  * @throws {Error} When the API call fails.
  */
-export const getAllApplications = async (
+export const getApplicationsForRepo = async (
   repo: string,
   owner: string,
 ): Promise<Application[] | undefined> => {
@@ -58,6 +61,33 @@ export const getAllApplications = async (
     ]
 
     return allApplications
+  } catch (error: any) {
+    console.error(error)
+
+    const message = error?.message ?? 'Failed to fetch applications'
+    throw new Error(message)
+  }
+}
+
+/**
+ * Get all applications of all repos
+ *
+ * @returns {Promise<Application[]>}
+ * @throws {Error} When the API call fails.
+ */
+export const getAllApplications = async (): Promise<
+  Application[] | undefined
+> => {
+  try {
+    const applications = (await apiClient.get('/applications')).data.map(
+      (e: { 0: Application; 1: string; 2: string }) => ({
+        ...e[0],
+        repo: e[1],
+        owner: e[2],
+      }),
+    )
+
+    return applications
   } catch (error: any) {
     console.error(error)
 

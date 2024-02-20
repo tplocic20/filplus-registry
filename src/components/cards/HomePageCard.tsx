@@ -8,8 +8,8 @@ import { requestTypeColor, stateColor } from '@/lib/constants'
 
 interface Props {
   application: Application
-  repo: string
-  owner: string
+  repo?: string
+  owner?: string
 }
 
 const HomePageCard: React.FC<Props> = ({ application, repo, owner }) => {
@@ -88,7 +88,9 @@ const HomePageCard: React.FC<Props> = ({ application, repo, owner }) => {
 
       <CardFooter className="flex">
         <Button asChild className="w-full">
-          <Link href={`/application/${owner}/${repo}/${application.ID}`}>
+          <Link
+            href={`/application/${owner ?? application.owner}/${repo ?? application.repo}/${application.ID}`}
+          >
             Detail
           </Link>
         </Button>
