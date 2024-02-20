@@ -36,7 +36,7 @@ export default function Home(): JSX.Element {
     queryKey: ['application', selectedAllocator, session.status],
     queryFn: async () => {
       if (selectedAllocator && session.status === 'authenticated')
-        return getApplicationsForRepo(
+        return await getApplicationsForRepo(
           selectedAllocator.repo,
           selectedAllocator.owner,
         )
@@ -45,7 +45,7 @@ export default function Home(): JSX.Element {
         (!selectedAllocator && session.status === 'unauthenticated') ||
         (!selectedAllocator && allReposSelected)
       )
-        return getAllApplications()
+        return await getAllApplications()
 
       return []
     },
@@ -181,7 +181,8 @@ export default function Home(): JSX.Element {
                 onValueChange={(value) => {
                   if (!value) {
                     setAllReposSelected(true)
-                    return setSelectedAllocator(undefined)
+                    setSelectedAllocator(undefined)
+                    return
                   }
                   setSelectedAllocator(
                     allocators.find((e) => e.owner + '-' + e.repo === value),
