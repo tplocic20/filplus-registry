@@ -10,9 +10,9 @@ import { useSession } from 'next-auth/react'
 interface AllocatorContextType {
   allocators: Allocator[] // Specify a more specific type instead of any if possible
   setAllocators: React.Dispatch<React.SetStateAction<Allocator[]>> // Adjust the type as needed
-  selectedAllocator: Allocator | undefined
+  selectedAllocator: Allocator | undefined | 'all'
   setSelectedAllocator: React.Dispatch<
-    React.SetStateAction<Allocator | undefined>
+    React.SetStateAction<Allocator | undefined | 'all'>
   > // Adjust the type as needed
 }
 
@@ -36,7 +36,9 @@ export const AllocatorProvider: React.FunctionComponent<
   AllocatorProviderProps
 > = ({ children }): React.ReactElement => {
   const [allocators, setAllocators] = useState<Allocator[]>([])
-  const [selectedAllocator, setSelectedAllocator] = useState<Allocator>()
+  const [selectedAllocator, setSelectedAllocator] = useState<
+    Allocator | 'all'
+  >()
   const session = useSession()
 
   const { data: allocatorsData } = useQuery({
