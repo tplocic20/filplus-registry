@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 import { useAllocator } from '@/lib/AllocatorProvider'
 import { getAllApplications, getApplicationsForRepo } from '@/lib/apiClient'
-import { type Allocator, type Application } from '@/type'
+import { type Application } from '@/type'
 import Fuse from 'fuse.js'
 import { Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -26,16 +26,17 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export default function Home(): JSX.Element {
-  const { allocators } = useAllocator()
+  const { allocators, selectedAllocator, setSelectedAllocator } = useAllocator()
   const session = useSession()
-
-  const [selectedAllocator, setSelectedAllocator] = useState<Allocator>()
-  const [allReposSelected, setAllReposSelected] = useState<boolean>(false)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['application', selectedAllocator, session.status],
     queryFn: async () => {
-      if (selectedAllocator && session.status === 'authenticated')
+      if (
+        selectedAllocator &&
+        typeof selectedAllocator !== 'string' &&
+        session.status === 'authenticated'
+      )
         return await getApplicationsForRepo(
           selectedAllocator.repo,
           selectedAllocator.owner,
@@ -43,7 +44,7 @@ export default function Home(): JSX.Element {
 
       if (
         (!selectedAllocator && session.status === 'unauthenticated') ||
-        (!selectedAllocator && allReposSelected)
+        selectedAllocator === 'all'
       )
         return await getAllApplications()
 
@@ -54,9 +55,13 @@ export default function Home(): JSX.Element {
   })
 
   useEffect(() => {
-    if (!allocators?.length) return
-    setSelectedAllocator(allocators[0])
-  }, [allocators])
+    console.log(selectedAllocator)
+    if (!allocators?.length) {
+      setSelectedAllocator(undefined)
+    } else if (!selectedAllocator) {
+      setSelectedAllocator(allocators[0])
+    }
+  }, [allocators, selectedAllocator])
 
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -175,13 +180,14 @@ export default function Home(): JSX.Element {
               <Select
                 value={
                   selectedAllocator
-                    ? selectedAllocator.owner + '-' + selectedAllocator.repo
+                    ? typeof selectedAllocator !== 'string'
+                      ? selectedAllocator.owner + '-' + selectedAllocator.repo
+                      : 'all'
                     : ''
                 }
                 onValueChange={(value) => {
-                  if (!value) {
-                    setAllReposSelected(true)
-                    setSelectedAllocator(undefined)
+                  if (value === 'all') {
+                    setSelectedAllocator(value)
                     return
                   }
                   setSelectedAllocator(
@@ -193,7 +199,7 @@ export default function Home(): JSX.Element {
                   <SelectValue placeholder="Select Repository" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem key={'All repositories'} value={''}>
+                  <SelectItem key={'All repositories'} value={'all'}>
                     All repositories
                   </SelectItem>
                   {allocators.map((e) => (
@@ -224,7 +230,7 @@ export default function Home(): JSX.Element {
         <TabsContent value="table">
           <DataTable
             columns={generateColumns(
-              selectedAllocator
+              selectedAllocator && typeof selectedAllocator !== 'string'
                 ? {
                     owner: selectedAllocator.owner,
                     repo: selectedAllocator.repo,
@@ -239,8 +245,16 @@ export default function Home(): JSX.Element {
             {searchResults?.map((app: Application) => (
               <AppCard
                 application={app}
-                repo={selectedAllocator?.repo}
-                owner={selectedAllocator?.owner}
+                repo={
+                  selectedAllocator && typeof selectedAllocator !== 'string'
+                    ? selectedAllocator.repo
+                    : ''
+                }
+                owner={
+                  selectedAllocator && typeof selectedAllocator !== 'string'
+                    ? selectedAllocator.owner
+                    : ''
+                }
                 key={app.ID}
               />
             ))}
