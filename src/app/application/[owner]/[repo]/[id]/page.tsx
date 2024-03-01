@@ -4,6 +4,7 @@ import AppInfoCard from '@/components/cards/AppInfoCard'
 import ProjectInfoCard from '@/components/cards/ProjectInfoCard'
 import { Spinner } from '@/components/ui/spinner'
 import { getApplicationByParams } from '@/lib/apiClient'
+import { useSession } from 'next-auth/react'
 import { useQuery } from 'react-query'
 
 interface ComponentProps {
@@ -17,6 +18,7 @@ interface ComponentProps {
 const ApplicationDetailPage: React.FC<ComponentProps> = ({
   params: { id, repo, owner },
 }) => {
+  const session = useSession();
   const { data, isLoading } = useQuery({
     queryKey: ['posts', id],
     queryFn: async () => await getApplicationByParams(id, repo, owner),

@@ -4,6 +4,7 @@ import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
 import ReactQueryProvider from '@/context/ReactQueryProvider'
 import { AllocatorProvider } from '@/lib/AllocatorProvider'
+import { UserContextProvider } from '@/context/UserContext'
 
 const inter = Inter({ subsets: ['latin'] })
 

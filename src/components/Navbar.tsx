@@ -1,5 +1,5 @@
 'use client'
-import { signIn, useSession } from 'next-auth/react'
+import { signIn, useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import React from 'react'
 import { Button } from './ui/button'

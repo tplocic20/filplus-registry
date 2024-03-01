@@ -5,6 +5,7 @@ import {
 } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
+import { getAccessToken } from './session';
 
 /**
  * Axios client instance with a predefined base URL for making API requests.
@@ -12,6 +13,17 @@ import { getCurrentDate } from './utils'
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 })
+
+apiClient.interceptors.request.use(async (config) => {
+  const accessToken = await getAccessToken();
+  if (accessToken) {
+    config.headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 
 /**
  * Get applications for repo
@@ -82,8 +94,8 @@ export const getAllApplications = async (): Promise<
     const applications = (await apiClient.get('/applications')).data.map(
       (e: { 0: Application; 1: string; 2: string }) => ({
         ...e[0],
-        repo: e[1],
-        owner: e[2],
+        owner: e[1],
+        repo: e[2],
       }),
     )
 
@@ -135,10 +147,16 @@ export const postApplicationTrigger = async (
   owner: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/trigger`, {
+    const { data } = await apiClient.post(`api/application/trigger`, {
       actor,
       repo,
       owner,
+    }, {
+      params: {
+        repo,
+        owner,
+        id
+      },
     })
     return data
   } catch (error) {
@@ -163,7 +181,7 @@ export const postApplicationProposal = async (
   signature: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/propose`, {
+    const { data } = await apiClient.post(`application/propose`, {
       request_id: requestId,
       owner,
       repo,
@@ -173,6 +191,12 @@ export const postApplicationProposal = async (
         created_at: getCurrentDate(),
         message_cid: signature,
         github_username: userName,
+      },
+    }, {
+      params: {
+        repo,
+        owner,
+        id
       },
     })
     return data
@@ -198,7 +222,7 @@ export const postApplicationApproval = async (
   signature: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/approve`, {
+    const { data } = await apiClient.post(`application/approve`, {
       request_id: requestId,
       owner,
       repo,
@@ -207,6 +231,12 @@ export const postApplicationApproval = async (
         created_at: getCurrentDate(),
         message_cid: signature,
         github_username: userName,
+      },
+    }, {
+      params: {
+        repo,
+        owner,
+        id
       },
     })
     return data
