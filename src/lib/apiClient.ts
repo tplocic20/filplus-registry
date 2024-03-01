@@ -148,7 +148,6 @@ export const postApplicationTrigger = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(`api/application/trigger`, {
-      actor,
       repo,
       owner,
     }, {
@@ -190,7 +189,6 @@ export const postApplicationProposal = async (
         // Datetime in format YYYY-MM-DDTHH:MM:SSZ
         created_at: getCurrentDate(),
         message_cid: signature,
-        github_username: userName,
       },
     }, {
       params: {
@@ -230,7 +228,6 @@ export const postApplicationApproval = async (
         signing_address: address,
         created_at: getCurrentDate(),
         message_cid: signature,
-        github_username: userName,
       },
     }, {
       params: {
