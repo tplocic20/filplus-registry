@@ -150,7 +150,7 @@ export const postApplicationTrigger = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `application/trigger`,
+      `api/application/trigger`,
       {
         actor
       },
@@ -186,7 +186,7 @@ export const postApplicationProposal = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `application/propose`,
+      `api/application/propose`,
       {
         request_id: requestId,
         owner,
@@ -230,7 +230,7 @@ export const postApplicationApproval = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `application/approve`,
+      `api/application/approve`,
       {
         request_id: requestId,
         owner,
