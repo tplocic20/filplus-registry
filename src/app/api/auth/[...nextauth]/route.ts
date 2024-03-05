@@ -1,4 +1,3 @@
-import { LOCAL_STORAGE_CONTEXT, UserContext, UserContextActionTypes } from '@/context/UserContext'
 import NextAuth from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 import { useContext } from 'react'
@@ -9,7 +8,7 @@ if (process.env.GITHUB_ID == null || process.env.GITHUB_SECRET == null) {
 
 declare module 'next-auth' {
   interface Session {
-    accessToken: string;
+    accessToken: string
     user: {
       githubUsername?: string
       name?: string | null
@@ -21,7 +20,7 @@ declare module 'next-auth' {
 
 const handler = NextAuth({
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
   },
   providers: [
     GithubProvider({
@@ -42,7 +41,7 @@ const handler = NextAuth({
           const response = await fetch(`https://api.github.com/user/${userId}`)
           const data = await response.json()
           session.user.githubUsername = data.login
-          session.accessToken = token.accessToken as string;
+          session.accessToken = token.accessToken as string
         }
       }
 
@@ -51,9 +50,9 @@ const handler = NextAuth({
     async jwt({ token, account }) {
       // Persist the OAuth access_token to the token right after signin
       if (account) {
-        token.accessToken = account.access_token;
+        token.accessToken = account.access_token
       }
-      return token;
+      return token
     },
   },
 })
