@@ -150,7 +150,7 @@ export const postApplicationTrigger = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `api/application/trigger`,
+      `verifier/application/trigger`,
       {
         actor
       },
@@ -186,7 +186,7 @@ export const postApplicationProposal = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `api/application/propose`,
+      `verifier/application/propose`,
       {
         request_id: requestId,
         owner,
@@ -203,7 +203,8 @@ export const postApplicationProposal = async (
           repo,
           owner,
           id,
-        },
+          github_username: userName,
+      },
       },
     )
     return data
@@ -230,7 +231,7 @@ export const postApplicationApproval = async (
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
-      `api/application/approve`,
+      `verifier/application/approve`,
       {
         request_id: requestId,
         owner,
@@ -246,7 +247,8 @@ export const postApplicationApproval = async (
           repo,
           owner,
           id,
-        },
+          github_username: userName,
+      },
       },
     )
     return data
