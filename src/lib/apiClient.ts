@@ -18,12 +18,12 @@ apiClient.interceptors.request.use(
   async (config) => {
     const accessToken = await getAccessToken()
     if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`
+      config.headers.Authorization = `Bearer ${accessToken}`
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
+  async (error) => {
+    return await Promise.reject(error)
   },
 )
 

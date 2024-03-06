@@ -1,11 +1,11 @@
 'use client'
-import { signIn, useSession, signOut } from 'next-auth/react'
+import { Github } from 'lucide-react'
+import { signIn, useSession } from 'next-auth/react'
+import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
-import { Button } from './ui/button'
-import { Github } from 'lucide-react'
 import UserNav from './UserNav'
-import Image from 'next/image'
+import { Button } from './ui/button'
 
 const Navbar: React.FC = () => {
   const session = useSession()

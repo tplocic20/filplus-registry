@@ -4,7 +4,6 @@ import AppInfoCard from '@/components/cards/AppInfoCard'
 import ProjectInfoCard from '@/components/cards/ProjectInfoCard'
 import { Spinner } from '@/components/ui/spinner'
 import { getApplicationByParams } from '@/lib/apiClient'
-import { useSession } from 'next-auth/react'
 import { useQuery } from 'react-query'
 
 interface ComponentProps {
