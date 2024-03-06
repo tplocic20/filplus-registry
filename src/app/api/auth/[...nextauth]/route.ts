@@ -15,14 +15,14 @@ declare module 'next-auth' {
       image?: string | null
     }
   }
-  
+
   interface Profile {
-    login: string;
+    login: string
   }
 
   interface Token {
-    login: string;
-    accessToken: string;
+    login: string
+    accessToken: string
   }
 }
 
@@ -41,7 +41,7 @@ const handler = NextAuth({
           userName: profile.login,
           email: profile.email,
           image: profile.avatar_url,
-        };
+        }
       },
     }),
   ],
@@ -57,17 +57,20 @@ const handler = NextAuth({
 
           if (!token.login) {
             try {
-              var response = await fetch(`https://api.github.com/user/${userId}`, {
-                headers: {
-                  Authorization: `Bearer ${token.accessToken}`
-                }
-              })
+              var response = await fetch(
+                `https://api.github.com/user/${userId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token.accessToken}`,
+                  },
+                },
+              )
               var data = await response.json()
             } catch (e) {
               console.log('github api profile fetch err: ', e)
             }
           }
-          session.user.githubUsername = token.login as string || data.login;
+          session.user.githubUsername = (token.login as string) || data.login
           session.accessToken = token.accessToken as string
         }
       }
@@ -80,8 +83,7 @@ const handler = NextAuth({
         token.accessToken = account.access_token
       }
 
-      if (profile)
-        token.login = profile.login;
+      if (profile) token.login = profile.login
       return token
     },
   },

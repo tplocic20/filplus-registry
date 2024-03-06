@@ -152,7 +152,7 @@ export const postApplicationTrigger = async (
     const { data } = await apiClient.post(
       `verifier/application/trigger`,
       {
-        actor
+        actor,
       },
       {
         params: {
@@ -204,7 +204,7 @@ export const postApplicationProposal = async (
           owner,
           id,
           github_username: userName,
-      },
+        },
       },
     )
     return data
@@ -248,7 +248,7 @@ export const postApplicationApproval = async (
           owner,
           id,
           github_username: userName,
-      },
+        },
       },
     )
     return data
