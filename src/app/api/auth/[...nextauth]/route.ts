@@ -10,6 +10,7 @@ declare module 'next-auth' {
     accessToken: string
     user: {
       name?: string
+      email?: string
       githubUsername?: string
       image?: string | null
     }
