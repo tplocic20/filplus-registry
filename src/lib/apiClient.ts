@@ -5,6 +5,7 @@ import {
 } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
+import { getAccessToken } from './session'
 
 /**
  * Axios client instance with a predefined base URL for making API requests.
@@ -12,6 +13,19 @@ import { getCurrentDate } from './utils'
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 })
+
+apiClient.interceptors.request.use(
+  async (config) => {
+    const accessToken = await getAccessToken()
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    return config
+  },
+  async (error) => {
+    return await Promise.reject(error)
+  },
+)
 
 /**
  * Get applications for repo
@@ -82,8 +96,8 @@ export const getAllApplications = async (): Promise<
     const applications = (await apiClient.get('/applications')).data.map(
       (e: { 0: Application; 1: string; 2: string }) => ({
         ...e[0],
-        repo: e[1],
-        owner: e[2],
+        owner: e[1],
+        repo: e[2],
       }),
     )
 
@@ -135,11 +149,19 @@ export const postApplicationTrigger = async (
   owner: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/trigger`, {
-      actor,
-      repo,
-      owner,
-    })
+    const { data } = await apiClient.post(
+      `verifier/application/trigger`,
+      {
+        actor,
+      },
+      {
+        params: {
+          repo,
+          owner,
+          id,
+        },
+      },
+    )
     return data
   } catch (error) {
     console.error(error)
@@ -163,18 +185,28 @@ export const postApplicationProposal = async (
   signature: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/propose`, {
-      request_id: requestId,
-      owner,
-      repo,
-      signer: {
-        signing_address: address,
-        // Datetime in format YYYY-MM-DDTHH:MM:SSZ
-        created_at: getCurrentDate(),
-        message_cid: signature,
-        github_username: userName,
+    const { data } = await apiClient.post(
+      `verifier/application/propose`,
+      {
+        request_id: requestId,
+        owner,
+        repo,
+        signer: {
+          signing_address: address,
+          // Datetime in format YYYY-MM-DDTHH:MM:SSZ
+          created_at: getCurrentDate(),
+          message_cid: signature,
+        },
       },
-    })
+      {
+        params: {
+          repo,
+          owner,
+          id,
+          github_username: userName,
+        },
+      },
+    )
     return data
   } catch (error) {
     console.error(error)
@@ -198,17 +230,27 @@ export const postApplicationApproval = async (
   signature: string,
 ): Promise<Application | undefined> => {
   try {
-    const { data } = await apiClient.post(`application/${id}/approve`, {
-      request_id: requestId,
-      owner,
-      repo,
-      signer: {
-        signing_address: address,
-        created_at: getCurrentDate(),
-        message_cid: signature,
-        github_username: userName,
+    const { data } = await apiClient.post(
+      `verifier/application/approve`,
+      {
+        request_id: requestId,
+        owner,
+        repo,
+        signer: {
+          signing_address: address,
+          created_at: getCurrentDate(),
+          message_cid: signature,
+        },
       },
-    })
+      {
+        params: {
+          repo,
+          owner,
+          id,
+          github_username: userName,
+        },
+      },
+    )
     return data
   } catch (error) {
     console.error(error)

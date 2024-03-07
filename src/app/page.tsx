@@ -52,6 +52,7 @@ export default function Home(): JSX.Element {
     },
     refetchOnWindowFocus: false,
     refetchInterval: false,
+    retry: false,
   })
 
   useEffect(() => {
