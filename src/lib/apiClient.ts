@@ -151,11 +151,10 @@ export const postApplicationTrigger = async (
   try {
     const { data } = await apiClient.post(
       `verifier/application/trigger`,
-      {
-        actor,
-      },
+      {},
       {
         params: {
+          github_username: actor,
           repo,
           owner,
           id,
