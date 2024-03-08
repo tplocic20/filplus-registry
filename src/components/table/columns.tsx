@@ -7,17 +7,20 @@ import { type ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Button } from '../ui/button'
 
-export const generateColumns = (
-  owner: string,
-  repo: string,
-): Array<ColumnDef<Application>> => {
+export const generateColumns = (repoConfig?: {
+  owner: string
+  repo: string
+}): Array<ColumnDef<Application>> => {
+  const repo = repoConfig?.repo
+  const owner = repoConfig?.owner
+
   const columns: Array<ColumnDef<Application>> = [
     {
       accessorKey: 'Issue Number',
-      header: 'Issue Number',
+      header: 'Issue No.',
       cell: ({ row }) => (
         <a
-          href={`https://github.com/${owner}/${repo}/issues/${row.original['Issue Number']}`}
+          href={`https://github.com/${owner ?? row.original.owner}/${repo ?? row.original.repo}/issues/${row.original['Issue Number']}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500"
@@ -101,13 +104,32 @@ export const generateColumns = (
       id: 'detail',
       cell: ({ row }) => (
         <Button asChild className="flex sm:w-4/5 lg:w-2/3 xl:w-3/5 mx-auto">
-          <Link href={`/application/${owner}/${repo}/${row.original.ID}`}>
+          <Link
+            href={`/application/${owner ?? row.original.owner}/${repo ?? row.original.repo}/${row.original.ID}`}
+          >
             Detail
           </Link>
         </Button>
       ),
     },
   ]
+
+  if (!repo) {
+    columns.splice(
+      1,
+      0,
+      ...[
+        {
+          accessorKey: 'repo',
+          header: 'Repository',
+        },
+        {
+          accessorKey: 'owner',
+          header: 'Owner',
+        },
+      ],
+    )
+  }
 
   return columns
 }

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { LedgerWallet } from '@/lib/wallet/LedgerWallet'
 import { BurnerWallet } from '@/lib/wallet/BurnerWallet'
 import { config } from '../config'
-import { type NodeConfig, type IWallet } from '@/type'
+import { type IWallet } from '@/type'
 import { anyToBytes } from '@/lib/utils'
 
 /**
@@ -12,9 +12,8 @@ const walletClassRegistry: Record<string, any> = {
   LedgerWallet: (
     networkIndex: number,
     setMessage: (message: string | null) => void,
-    nodeAddress?: string,
-    nodeConfig?: string,
-  ) => new LedgerWallet(networkIndex, setMessage, nodeAddress, nodeConfig),
+    multisigAddress?: string,
+  ) => new LedgerWallet(networkIndex, setMessage, multisigAddress),
   BurnerWallet: (
     networkIndex: number,
     setMessage: (message: string | null) => void,
@@ -37,7 +36,7 @@ interface WalletState {
   sendProposal: (clientAddress: string, datacap: string) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
-  initializeWallet: (nodeConfig?: NodeConfig) => Promise<boolean>
+  initializeWallet: (multisigAddress?: string) => Promise<boolean>
   message: string | null
   setMessage: (message: string | null) => void
 }
@@ -95,22 +94,21 @@ const useWallet = (): WalletState => {
    * @returns {Promise<boolean>} - A promise that resolves when the wallet is initialized.
    */
   const initializeWallet = useCallback(
-    async (nodeConfig?: NodeConfig) => {
+    async (multisigAddress?: string) => {
       setWalletError(null)
       setMessage('Initializing wallet...')
 
       try {
         const walletClass: string = config.walletClass
         let newWallet: Record<string, any>
-        if (!nodeConfig?.nodeAddress || !nodeConfig.nodeToken) {
+        if (!multisigAddress) {
           const networkIndex = initNetworkIndex()
           newWallet = walletClassRegistry[walletClass](networkIndex, setMessage)
         } else {
           newWallet = walletClassRegistry[walletClass](
             0,
             setMessage,
-            nodeConfig.nodeAddress,
-            nodeConfig.nodeToken,
+            multisigAddress,
           )
         }
         await newWallet.loadWallet()

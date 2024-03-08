@@ -7,6 +7,8 @@ export interface Application {
   Datacap: Datacap
   Lifecycle: Lifecycle
   'Allocation Requests': AllocationRequest[]
+  repo: string
+  owner: string
 }
 
 export interface Client {
@@ -108,11 +110,4 @@ export interface Allocator {
   installation_id: string
   multisig_address: string
   verifiers_gh_handles: string
-  node_address?: string
-  node_token?: string
-}
-
-export interface NodeConfig {
-  nodeAddress: string
-  nodeToken: string
 }

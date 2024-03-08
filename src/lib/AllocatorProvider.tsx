@@ -9,13 +9,19 @@ import { useSession } from 'next-auth/react'
 // Define the shape of your context data for TypeScript
 interface AllocatorContextType {
   allocators: Allocator[] // Specify a more specific type instead of any if possible
-  setAllocators: React.Dispatch<React.SetStateAction<any>> // Adjust the type as needed
+  setAllocators: React.Dispatch<React.SetStateAction<Allocator[]>> // Adjust the type as needed
+  selectedAllocator: Allocator | undefined | 'all'
+  setSelectedAllocator: React.Dispatch<
+    React.SetStateAction<Allocator | undefined | 'all'>
+  > // Adjust the type as needed
 }
 
 // Provide a default value matching the structure
 const defaultContextValue: AllocatorContextType = {
   allocators: [], // Initial data value
   setAllocators: () => {}, // No-op function for initialization
+  selectedAllocator: undefined,
+  setSelectedAllocator: () => {},
 }
 
 interface AllocatorProviderProps {
@@ -29,7 +35,10 @@ const AllocatorContext =
 export const AllocatorProvider: React.FunctionComponent<
   AllocatorProviderProps
 > = ({ children }): React.ReactElement => {
-  const [allocators, setAllocators] = useState<any>(null) // Adjust the type as needed
+  const [allocators, setAllocators] = useState<Allocator[]>([])
+  const [selectedAllocator, setSelectedAllocator] = useState<
+    Allocator | 'all'
+  >()
   const session = useSession()
 
   const { data: allocatorsData } = useQuery({
@@ -52,7 +61,14 @@ export const AllocatorProvider: React.FunctionComponent<
   }, [allocatorsData, session?.data?.user?.githubUsername])
 
   return (
-    <AllocatorContext.Provider value={{ allocators, setAllocators }}>
+    <AllocatorContext.Provider
+      value={{
+        allocators,
+        setAllocators,
+        selectedAllocator,
+        setSelectedAllocator,
+      }}
+    >
       {children}
     </AllocatorContext.Provider>
   )
