@@ -44,6 +44,7 @@ export const AllocatorProvider: React.FunctionComponent<
   const { data: allocatorsData } = useQuery({
     queryKey: ['allocator'],
     queryFn: getAllocators,
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
@@ -52,9 +53,11 @@ export const AllocatorProvider: React.FunctionComponent<
 
     const allocatorsDataParsed = allocatorsData.filter((e) =>
       e.verifiers_gh_handles
-        .split(',')
-        .map((handle) => handle.trim().toLowerCase())
-        .includes(githubUsername),
+        ? e.verifiers_gh_handles
+            .split(',')
+            .map((handle) => handle.trim().toLowerCase())
+            .includes(githubUsername)
+        : false,
     )
 
     setAllocators(allocatorsDataParsed)

@@ -287,3 +287,28 @@ export const getAllocators = async (): Promise<Allocator[]> => {
     throw e
   }
 }
+
+/**
+ * Sends the new GitHub Installation ID to the backend.
+ */
+export const submitGitHubInstallationId = async (
+  installationId: string | number,
+): Promise<{
+  installation_id: string
+  repositories: Array<{
+    owner: string
+    slug: string
+  }>
+}> => {
+  try {
+    const response = await apiClient.get('allocator/update_installation_id', {
+      params: {
+        installation_id: installationId,
+      },
+    })
+    return response.data
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
