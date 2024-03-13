@@ -19,8 +19,8 @@ export default function RootLayout({
 }): JSX.Element {
   return (
     <html lang="en">
-      <body className={inter.className + " h-screen"}>
-        <ReactQueryProvider>          
+      <body className={inter.className + ' h-screen'}>
+        <ReactQueryProvider>
           <AuthProvider>
             <AllocatorProvider>
               <Navbar />
