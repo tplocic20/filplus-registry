@@ -51,11 +51,7 @@ export const getLastDatacapAllocation = (
       allocation.ID === application.Lifecycle['Active Request ID'],
   )
 
-  if (
-    lastAllocation === undefined ||
-    lastAllocation.Active ||
-    lastAllocation.Signers.length !== 2
-  ) {
+  if (lastAllocation === undefined || lastAllocation.Active) {
     return undefined
   }
 
