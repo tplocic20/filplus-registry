@@ -36,17 +36,19 @@ export default function Home(): JSX.Element {
         selectedAllocator &&
         typeof selectedAllocator !== 'string' &&
         session.status === 'authenticated'
-      )
+      ) {
         return await getApplicationsForRepo(
           selectedAllocator.repo,
           selectedAllocator.owner,
         )
+      }
 
       if (
         (!selectedAllocator && session.status === 'unauthenticated') ||
-        selectedAllocator === 'all'
-      )
+        selectedAllocator === 'all' || (session.status === 'authenticated' && selectedAllocator === undefined)
+      ) {
         return await getAllApplications()
+      }
 
       return []
     },
@@ -56,7 +58,6 @@ export default function Home(): JSX.Element {
   })
 
   useEffect(() => {
-    console.log(selectedAllocator)
     if (!allocators?.length) {
       setSelectedAllocator(undefined)
     } else if (!selectedAllocator) {
@@ -129,7 +130,6 @@ export default function Home(): JSX.Element {
 
     const searchResults =
       searchTerm !== '' ? results.map((result) => result.item) : filteredData
-
     setSearchResults(searchResults)
   }, [searchTerm, filter, data, isLoading])
 
@@ -177,7 +177,7 @@ export default function Home(): JSX.Element {
                 <SelectItem value="Submitted">Governance Review</SelectItem>
               </SelectContent>
             </Select>
-            {allocators && allocators.length > 1 && (
+            {allocators && allocators.length > 0 && (
               <Select
                 value={
                   selectedAllocator

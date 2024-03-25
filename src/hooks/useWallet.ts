@@ -28,6 +28,7 @@ const walletClassRegistry: Record<string, any> = {
 interface WalletState {
   walletError: Error | null
   setActiveAccountIndex: (index: number) => void
+  accounts: string[]
   activeAddress: string
   getProposalTx: (
     clientAddress: string,
@@ -36,9 +37,9 @@ interface WalletState {
   sendProposal: (clientAddress: string, datacap: string) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
-  initializeWallet: (multisigAddress?: string) => Promise<boolean>
+  initializeWallet: (multisigAddress?: string) => Promise<string[]>
   message: string | null
-  setMessage: (message: string | null) => void
+  setMessage: (message: string | null) => void,
 }
 
 /**
@@ -121,7 +122,7 @@ const useWallet = (): WalletState => {
         setMessage(null)
         setWallet(newWallet as IWallet)
         setMultisigAddress(newWallet.lotusNode.rkhMultisig)
-        return true
+        return allAccounts
       } catch (err) {
         console.error('Error initializing wallet:', err)
         if (err instanceof Error) {
@@ -252,6 +253,7 @@ const useWallet = (): WalletState => {
     initializeWallet,
     message,
     setMessage,
+    accounts
   }
 }
 

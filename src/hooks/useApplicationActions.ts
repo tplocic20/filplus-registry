@@ -35,8 +35,10 @@ interface ApplicationActions {
     unknown
   >
   walletError: Error | null
-  initializeWallet: (multisigAddress?: string) => Promise<boolean>
-  message: string | null
+  initializeWallet: (multisigAddress?: string) => Promise<string[]>
+  setActiveAccountIndex: (index: number) => void
+  message: string | null,
+  accounts: string[],
 }
 
 /**
@@ -62,11 +64,13 @@ const useApplicationActions = (
   const {
     walletError,
     initializeWallet,
+    setActiveAccountIndex,
     activeAddress,
     getProposalTx,
     sendProposal,
     sendApproval,
     message,
+    accounts,
   } = useWallet()
 
   /**
@@ -260,6 +264,8 @@ const useApplicationActions = (
     walletError,
     initializeWallet,
     message,
+    setActiveAccountIndex,
+    accounts,
   }
 }
 
