@@ -13,6 +13,7 @@ import { LDNActorType, type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
 
 interface ComponentProps {
   application: Application
@@ -46,6 +47,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     mutationApproval,
     walletError,
     initializeWallet,
+    setActiveAccountIndex,
+    accounts,
     message,
   } = useApplicationActions(initialApplication, repo, owner)
   const [buttonText, setButtonText] = useState('')
@@ -58,7 +61,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   const [currentActorType, setCurrentActorType] = useState<LDNActorType | ''>(
     '',
   )
-
+  const [isSelectAccountModalOpen, setIsSelectAccountModalOpen] =
+    useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -156,10 +160,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       if (!currentAllocator) return
       setIsWalletConnecting(true)
       const { multisig_address: multisigAddress } = currentAllocator
-      const ret = multisigAddress
+      const accounts = multisigAddress
         ? await initializeWallet(multisigAddress)
         : await initializeWallet()
-      if (ret) setWalletConnected(true)
+      if (accounts.length) setIsSelectAccountModalOpen(true)
       setIsWalletConnecting(false)
       return
     } catch (error) {
@@ -301,6 +305,17 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
   return (
     <>
+      <AccountSelectionDialog
+        open={isSelectAccountModalOpen}
+        accounts={accounts}
+        onClose={() => {
+          setIsSelectAccountModalOpen(false)
+        }}
+        onSelect={(value) => {
+          setActiveAccountIndex(value)
+          setWalletConnected(true)
+        }}
+      />
       <div className="flex items-center flex-col mb-6">
         <h2 className="text-3xl font-bold">Application Detail</h2>
         <a
