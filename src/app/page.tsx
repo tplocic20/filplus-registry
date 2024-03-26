@@ -45,7 +45,8 @@ export default function Home(): JSX.Element {
 
       if (
         (!selectedAllocator && session.status === 'unauthenticated') ||
-        selectedAllocator === 'all' || (session.status === 'authenticated' && selectedAllocator === undefined)
+        selectedAllocator === 'all' ||
+        (session.status === 'authenticated' && selectedAllocator === undefined)
       ) {
         return await getAllApplications()
       }

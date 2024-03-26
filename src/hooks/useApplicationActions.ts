@@ -37,8 +37,8 @@ interface ApplicationActions {
   walletError: Error | null
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   setActiveAccountIndex: (index: number) => void
-  message: string | null,
-  accounts: string[],
+  message: string | null
+  accounts: string[]
 }
 
 /**

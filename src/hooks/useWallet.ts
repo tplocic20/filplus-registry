@@ -39,7 +39,7 @@ interface WalletState {
   sign: (message: string) => Promise<string>
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   message: string | null
-  setMessage: (message: string | null) => void,
+  setMessage: (message: string | null) => void
 }
 
 /**
@@ -253,7 +253,7 @@ const useWallet = (): WalletState => {
     initializeWallet,
     message,
     setMessage,
-    accounts
+    accounts,
   }
 }
 

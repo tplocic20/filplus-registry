@@ -5,10 +5,10 @@ import AuthProvider from '@/components/AuthProvider'
 import ReactQueryProvider from '@/context/ReactQueryProvider'
 import { AllocatorProvider } from '@/lib/AllocatorProvider'
 
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
