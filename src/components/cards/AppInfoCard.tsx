@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
 import { Modal } from '@/components/ui/modal'
 import ProgressBar from '@/components/ui/progress-bar'
 import { Spinner } from '@/components/ui/spinner'
@@ -8,17 +9,32 @@ import useApplicationActions from '@/hooks/useApplicationActions'
 import { useAllocator } from '@/lib/AllocatorProvider'
 import { stateColor, stateMapping } from '@/lib/constants'
 import { getAllowanceForAddress } from '@/lib/dmobApi'
-import { anyToBytes, getLastDatacapAllocation } from '@/lib/utils'
-import { LDNActorType, type Application } from '@/type'
+import {
+  anyToBytes,
+  bytesToiB,
+  calculateDatacap,
+  getLastDatacapAllocation,
+} from '@/lib/utils'
+import { type Allocation, LDNActorType, type Application } from '@/type'
+import Box from '@mui/material/Box'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormLabel from '@mui/material/FormLabel'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import Select, { type SelectChangeEvent } from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
-
+import { toast } from 'react-toastify'
 interface ComponentProps {
   application: Application
   repo: string
   owner: string
+  allocation?: Allocation
 }
 
 /**
@@ -35,6 +51,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
   repo,
   owner,
+  allocation,
 }) => {
   const session = useSession()
   const { allocators } = useAllocator()
@@ -63,6 +80,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   )
   const [isSelectAccountModalOpen, setIsSelectAccountModalOpen] =
     useState(false)
+  const [allocationType, setAllocationType] = useState<string>('')
+  const [allocationAmount, setAllocationAmount] = useState<string>('')
+
   const router = useRouter()
 
   useEffect(() => {
@@ -243,7 +263,20 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       switch (application.Lifecycle.State) {
         case 'Submitted':
           if (userName != null) {
-            await mutationTrigger.mutateAsync(userName)
+            const validatedAllocationAmount = validateDatacap(
+              allocationAmount,
+              application.Datacap['Total Requested Amount'],
+            )
+
+            if (!validatedAllocationAmount) {
+              setApiCalling(false)
+              return
+            }
+
+            await mutationTrigger.mutateAsync({
+              userName,
+              allocationAmount: validatedAllocationAmount,
+            })
           }
           break
         case 'ReadyToSign':
@@ -301,6 +334,24 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     return index % 2 === 0
       ? 'bg-white' // Fondo blanco para filas pares
       : 'bg-gray-100' // Fondo gris claro para filas impares
+  }
+
+  const validateDatacap = (
+    datacap: string,
+    totalDatacap: string,
+  ): string | undefined => {
+    const bytes = anyToBytes(datacap)
+    const totalBytes = anyToBytes(totalDatacap)
+
+    if (bytes > totalBytes) {
+      toast.error('Datacap exceeds the total requested amount')
+      return
+    }
+
+    const isBinary = datacap.toLowerCase().includes('ib')
+    const againToText = bytesToiB(bytes, isBinary)
+
+    return againToText
   }
 
   return (
@@ -430,13 +481,121 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
         {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
-            <CardFooter className="flex justify-end border-t pt-4 mt-4">
+            <CardFooter className="flex flex-col items-end border-t pt-4 mt-4 justify-center gap-3">
+              {application?.Lifecycle?.State === 'Submitted' && (
+                <div className="flex gap-3 items-center">
+                  <FormControl>
+                    <FormLabel id="demo-controlled-radio-buttons-group">
+                      Allocation Amount Type
+                    </FormLabel>
+                    <RadioGroup
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      value={allocationType}
+                      onChange={(e) => {
+                        if (e.target.value !== 'manual') {
+                          setAllocationAmount('')
+                        }
+                        setAllocationType((e.target as HTMLInputElement).value)
+                      }}
+                    >
+                      <FormControlLabel
+                        value={
+                          allocation?.allocation_amount_type
+                            ? allocation.allocation_amount_type
+                            : 'fixed'
+                        }
+                        control={<Radio />}
+                        label={
+                          allocation?.allocation_amount_type
+                            ? allocation.allocation_amount_type
+                                .charAt(0)
+                                .toUpperCase() +
+                              allocation.allocation_amount_type.slice(1)
+                            : 'Fixed'
+                        }
+                      />
+                      <FormControlLabel
+                        value="manual"
+                        control={<Radio />}
+                        label="Manual"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                  <div>
+                    {!allocationType ||
+                    allocationType === 'percentage' ||
+                    allocationType === 'fixed' ? (
+                      <Box sx={{ width: 230 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Amount</InputLabel>
+                          <Select
+                            disabled={!allocationType}
+                            value={allocationAmount}
+                            label="Allocation Amount"
+                            onChange={(e: SelectChangeEvent) => {
+                              setAllocationAmount(e.target.value)
+                            }}
+                          >
+                            {(allocation?.allocation_amount_type
+                              ? allocation.allocation_amount_quantity_options
+                              : ['1TiB', '5TiB', '50TiB', '100TiB', '1PiB']
+                            ).map((e) => {
+                              return (
+                                <MenuItem
+                                  key={e}
+                                  value={
+                                    allocationType === 'percentage'
+                                      ? calculateDatacap(
+                                          e,
+                                          application.Datacap[
+                                            'Total Requested Amount'
+                                          ],
+                                        )
+                                      : e
+                                  }
+                                >
+                                  {e}
+                                  {allocationType === 'percentage'
+                                    ? `% - ${calculateDatacap(e, application.Datacap['Total Requested Amount'])}`
+                                    : ''}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 230,
+                        }}
+                      >
+                        <TextField
+                          id="outlined-controlled"
+                          label="Amount"
+                          disabled={!allocationType}
+                          value={allocationAmount}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                          ) => {
+                            setAllocationAmount(event.target.value)
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </div>
+                </div>
+              )}
               {buttonText &&
                 (walletConnected ||
                   application.Lifecycle.State === 'Submitted') && (
                   <Button
                     onClick={() => void handleButtonClick()}
-                    disabled={isApiCalling}
+                    disabled={
+                      isApiCalling ||
+                      (application.Lifecycle.State === 'Submitted' &&
+                        !allocationAmount)
+                    }
                     className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
                   >
                     {buttonText}

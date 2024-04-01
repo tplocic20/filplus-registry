@@ -23,26 +23,31 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     refetchInterval: 10000,
   })
 
-  if (isLoading)
+  if (isLoading || !data?.application_file)
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
         <Spinner />
       </div>
     )
 
-  if (data != null)
+  if (data?.application_file)
     return (
       <div className="p-10">
         <div className="mb-10">
-          <AppInfoCard application={data} repo={repo} owner={owner} />
+          <AppInfoCard
+            application={data.application_file}
+            allocation={data.allocation}
+            repo={repo}
+            owner={owner}
+          />
         </div>
         <div className="mb-10">
-          <ProjectInfoCard application={data} />
+          <ProjectInfoCard application={data.application_file} />
         </div>
         <div>
           <AppHistory
-            datacapAllocations={data['Allocation Requests']}
-            actor={data.Lifecycle['Validated By']}
+            datacapAllocations={data.application_file?.['Allocation Requests']}
+            actor={data.application_file?.Lifecycle['Validated By']}
           />
         </div>
       </div>

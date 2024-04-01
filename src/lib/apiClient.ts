@@ -2,6 +2,7 @@ import {
   type LDNActorsResponse,
   type Application,
   type Allocator,
+  type Allocation,
 } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
@@ -120,15 +121,24 @@ export const getApplicationByParams = async (
   id: string,
   repo: string,
   owner: string,
-): Promise<Application | undefined> => {
+): Promise<
+  | {
+      application_file: Application
+      allocation?: Allocation
+    }
+  | undefined
+> => {
   try {
-    const { data } = await apiClient.get(`application`, {
-      params: {
-        id,
-        owner,
-        repo,
+    const { data } = await apiClient.get(
+      `/application/with-allocation-amount`,
+      {
+        params: {
+          id,
+          owner,
+          repo,
+        },
       },
-    })
+    )
     if (Object.keys(data).length > 0) return data
   } catch (error) {
     console.error(error)
@@ -147,11 +157,14 @@ export const postApplicationTrigger = async (
   actor: string,
   repo: string,
   owner: string,
+  allocationAmount: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
       `verifier/application/trigger`,
-      {},
+      {
+        allocation_amount: allocationAmount,
+      },
       {
         params: {
           github_username: actor,
