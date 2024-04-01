@@ -169,7 +169,7 @@ const useWallet = (): WalletState => {
       if (wallet == null) throw new Error('No wallet initialized.')
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
-      const bytesDatacap = anyToBytes(datacap)
+      const bytesDatacap = Math.floor(anyToBytes(datacap))
       const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
       const pendingForClient = pendingTxs?.filter(
         (tx: any) =>
@@ -197,7 +197,7 @@ const useWallet = (): WalletState => {
 
       setMessage('Sending proposal...')
 
-      const bytesDatacap = anyToBytes(datacap)
+      const bytesDatacap = Math.floor(anyToBytes(datacap))
       const messageCID = await wallet.api.multisigVerifyClient(
         multisigAddress,
         clientAddress,

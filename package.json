@@ -1,6 +1,6 @@
 {
   "name": "filecoin-registry",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -26,7 +26,7 @@
     "@types/node": "20.3.1",
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",
-    "@wtfcode/byte-converter": "^2.0.8",
+    "@wtfcode/byte-converter": "1.7.11",
     "@zondax/filecoin-signing-tools": "^0.7.1",
     "@zondax/ledger-filecoin": "^0.13.0",
     "autoprefixer": "10.4.14",

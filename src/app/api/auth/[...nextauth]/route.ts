@@ -55,9 +55,11 @@ const handler = NextAuth({
         if (userIdMatch !== undefined && userIdMatch !== null) {
           const userId = userIdMatch[1]
 
+          let data: any
+
           if (!token.login) {
             try {
-              var response = await fetch(
+              const response = await fetch(
                 `https://api.github.com/user/${userId}`,
                 {
                   headers: {
@@ -65,7 +67,7 @@ const handler = NextAuth({
                   },
                 },
               )
-              var data = await response.json()
+              await response.json()
             } catch (e) {
               console.log('github api profile fetch err: ', e)
             }
