@@ -8,17 +8,27 @@ import useApplicationActions from '@/hooks/useApplicationActions'
 import { useAllocator } from '@/lib/AllocatorProvider'
 import { stateColor, stateMapping } from '@/lib/constants'
 import { getAllowanceForAddress } from '@/lib/dmobApi'
-import { anyToBytes, getLastDatacapAllocation } from '@/lib/utils'
-import { LDNActorType, type Application } from '@/type'
+import { anyToBytes, calculateDatacap, getLastDatacapAllocation, validateDatacap } from '@/lib/utils'
+import { Allocation, LDNActorType, type Application } from '@/type'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
-
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
+import FormLabel from '@mui/material/FormLabel'
+import Box from '@mui/material/Box'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
 interface ComponentProps {
   application: Application
   repo: string
   owner: string
+  allocation: Allocation
 }
 
 /**
@@ -35,6 +45,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   application: initialApplication,
   repo,
   owner,
+  allocation: {
+    allocation_amount_type,
+    allocation_amount_quantity_options,
+  },
 }) => {
   const session = useSession()
   const { allocators } = useAllocator()
@@ -63,6 +77,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   )
   const [isSelectAccountModalOpen, setIsSelectAccountModalOpen] =
     useState(false)
+  const [allocationType, setAllocationType] = useState<string>('')
+  const [allocationAmount, setAllocationAmount] = useState<string>('')
+
   const router = useRouter()
 
   useEffect(() => {
@@ -243,7 +260,11 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       switch (application.Lifecycle.State) {
         case 'Submitted':
           if (userName != null) {
-            await mutationTrigger.mutateAsync(userName)
+            const validatedAllocationAmount = validateDatacap(allocationAmount);
+            await mutationTrigger.mutateAsync({
+              userName,
+              allocationAmount: validatedAllocationAmount,
+            })
           }
           break
         case 'ReadyToSign':
@@ -430,13 +451,96 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
         {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
-            <CardFooter className="flex justify-end border-t pt-4 mt-4">
+            <CardFooter className="flex flex-col items-end border-t pt-4 mt-4 justify-center gap-3">
+              {application?.Lifecycle?.State === 'Submitted' && <div className="flex gap-3 items-center">
+                {!!allocation_amount_type && (
+                  <FormControl>
+                    <FormLabel id="demo-controlled-radio-buttons-group">
+                      Allocation Amount Type
+                    </FormLabel>
+                    <RadioGroup
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      value={allocationType}
+                      onChange={(e) =>
+                        setAllocationType((e.target as HTMLInputElement).value)
+                      }
+                    >
+                      <FormControlLabel
+                        value={allocation_amount_type}
+                        control={<Radio />}
+                        label={
+                          allocation_amount_type.charAt(0).toUpperCase() +
+                          allocation_amount_type.slice(1)
+                        }
+                      />
+                      <FormControlLabel
+                        value="manual"
+                        control={<Radio />}
+                        label="Manual"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+                {allocation_amount_type && (
+                  <div>
+                    {!allocationType ||
+                    allocationType === 'percentage' ||
+                    allocationType === 'fixed' ? (
+                      <Box sx={{ width: 230 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Amount</InputLabel>
+                          <Select
+                            disabled={!allocationType}
+                            value={allocationAmount}
+                            label="Allocation Amount"
+                            onChange={(e: SelectChangeEvent) => {
+                              console.log(e.target.value)
+                              setAllocationAmount(e.target.value as string)
+                            }}
+                          >
+                            {allocation_amount_quantity_options?.map((e) => {
+                              return (
+                                <MenuItem key={e} value={calculateDatacap(e, application.Datacap['Total Requested Amount'])}>
+                                  {e}
+                                  {allocationType === 'percentage' ? `% - ${calculateDatacap(e, application.Datacap['Total Requested Amount'])}` : ''}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 120,
+                        }}
+                      >
+                        <TextField
+                          id="outlined-controlled"
+                          label="Amount"
+                          disabled={!allocationType}
+                          value={allocationAmount}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                          ) => {
+                            setAllocationAmount(event.target.value)
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </div>
+                )}
+              </div>}
               {buttonText &&
                 (walletConnected ||
                   application.Lifecycle.State === 'Submitted') && (
                   <Button
                     onClick={() => void handleButtonClick()}
-                    disabled={isApiCalling}
+                    disabled={
+                      isApiCalling ||
+                      (application.Lifecycle.State === 'Submitted' &&
+                        !allocationAmount)
+                    }
                     className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
                   >
                     {buttonText}

@@ -22,8 +22,7 @@ import { useSession } from 'next-auth/react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-toastify'
 
 export default function Home(): JSX.Element {
   const { allocators, selectedAllocator, setSelectedAllocator } = useAllocator()
@@ -143,7 +142,6 @@ export default function Home(): JSX.Element {
 
   return (
     <main className="mt-10 px-10 grid select-none">
-      <ToastContainer position="top-right" autoClose={10000} />
 
       <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">

@@ -11,6 +11,11 @@ export interface Application {
   owner: string
 }
 
+export interface Allocation {
+  allocation_amount_type: string
+  allocation_amount_quantity_options: string[]
+}
+
 export interface Client {
   Name: string
   Region: string
@@ -110,4 +115,17 @@ export interface Allocator {
   installation_id: string
   multisig_address: string
   verifiers_gh_handles: string
+}
+
+export interface ByteConverterAutoscaleOptions {
+  preferByte: boolean;
+  preferBit: boolean;
+  preferBinary: boolean;
+  preferDecimal: boolean;
+  preferSameBase: boolean;
+  preferOppositeBase: boolean;
+  preferSameUnit: boolean;
+  preferOppositeUnit: boolean;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  handler: (curDataFormat: string, isUppingDataFormat: boolean) => {};
 }

@@ -4,6 +4,8 @@ import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
 import ReactQueryProvider from '@/context/ReactQueryProvider'
 import { AllocatorProvider } from '@/lib/AllocatorProvider'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
@@ -26,6 +28,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className + ' h-screen'}>
         <ReactQueryProvider>
+        <ToastContainer position="top-right" autoClose={10000} />
+
           <AuthProvider>
             <AllocatorProvider>
               <Navbar />

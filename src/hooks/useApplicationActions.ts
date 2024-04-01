@@ -19,13 +19,13 @@ interface ApplicationActions {
   mutationTrigger: UseMutationResult<
     Application | undefined,
     unknown,
-    string,
+    { allocationAmount: string; userName: string },
     unknown
   >
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    { requestId: string; userName: string },
+    { requestId: string; userName: string, allocation_amount?: string },
     unknown
   >
   mutationApproval: UseMutationResult<
@@ -114,16 +114,18 @@ const useApplicationActions = (
   const mutationTrigger = useMutation<
     Application | undefined,
     unknown,
-    string,
+    { userName: string; allocationAmount: string },
     unknown
   >(
-    async (userName: string) =>
-      await postApplicationTrigger(
+    async ({ userName, allocationAmount }) => {
+      return await postApplicationTrigger(
         initialApplication.ID,
         userName,
         repo,
         owner,
-      ),
+        allocationAmount,
+      )
+    },
     {
       onSuccess: (data) => {
         setApiCalling(false)

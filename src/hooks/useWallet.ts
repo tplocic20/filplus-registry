@@ -34,7 +34,10 @@ interface WalletState {
     clientAddress: string,
     datacap: string,
   ) => Promise<string | boolean>
-  sendProposal: (clientAddress: string, datacap: string) => Promise<string>
+  sendProposal: (
+    clientAddress: string, 
+    datacap: string,
+  ) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
   sign: (message: string) => Promise<string>
   initializeWallet: (multisigAddress?: string) => Promise<string[]>

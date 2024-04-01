@@ -34,15 +34,20 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
     return (
       <div className="p-10">
         <div className="mb-10">
-          <AppInfoCard application={data} repo={repo} owner={owner} />
+          <AppInfoCard
+            application={data.application_file}
+            allocation={data.allocation}
+            repo={repo}
+            owner={owner}
+          />
         </div>
         <div className="mb-10">
-          <ProjectInfoCard application={data} />
+          <ProjectInfoCard application={data.application_file} />
         </div>
         <div>
           <AppHistory
-            datacapAllocations={data['Allocation Requests']}
-            actor={data.Lifecycle['Validated By']}
+            datacapAllocations={data.application_file['Allocation Requests']}
+            actor={data.application_file.Lifecycle['Validated By']}
           />
         </div>
       </div>
