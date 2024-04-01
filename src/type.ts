@@ -118,14 +118,14 @@ export interface Allocator {
 }
 
 export interface ByteConverterAutoscaleOptions {
-  preferByte: boolean;
-  preferBit: boolean;
-  preferBinary: boolean;
-  preferDecimal: boolean;
-  preferSameBase: boolean;
-  preferOppositeBase: boolean;
-  preferSameUnit: boolean;
-  preferOppositeUnit: boolean;
+  preferByte: boolean
+  preferBit: boolean
+  preferBinary: boolean
+  preferDecimal: boolean
+  preferSameBase: boolean
+  preferOppositeBase: boolean
+  preferSameUnit: boolean
+  preferOppositeUnit: boolean
   // eslint-disable-next-line @typescript-eslint/ban-types
-  handler: (curDataFormat: string, isUppingDataFormat: boolean) => {};
+  handler: (curDataFormat: string, isUppingDataFormat: boolean) => {}
 }

@@ -142,7 +142,6 @@ export default function Home(): JSX.Element {
 
   return (
     <main className="mt-10 px-10 grid select-none">
-
       <Tabs defaultValue="table">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">

@@ -2,7 +2,7 @@ import {
   type LDNActorsResponse,
   type Application,
   type Allocator,
-  Allocation,
+  type Allocation,
 } from '@/type'
 import axios from 'axios'
 import { getCurrentDate } from './utils'
@@ -124,7 +124,7 @@ export const getApplicationByParams = async (
 ): Promise<
   | {
       application_file: Application
-      allocation: Allocation
+      allocation?: Allocation
     }
   | undefined
 > => {

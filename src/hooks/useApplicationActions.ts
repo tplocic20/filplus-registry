@@ -25,7 +25,7 @@ interface ApplicationActions {
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    { requestId: string; userName: string, allocation_amount?: string },
+    { requestId: string; userName: string; allocation_amount?: string },
     unknown
   >
   mutationApproval: UseMutationResult<
