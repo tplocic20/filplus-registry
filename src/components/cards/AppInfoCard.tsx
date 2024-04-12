@@ -141,7 +141,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     const ghUserName = session.data.user.githubUsername
     const currentAllocator = allocators.find((e) => e.repo === repo)
-    if (currentAllocator?.verifiers_gh_handles.includes(ghUserName.toLowerCase())) {
+    if (
+      currentAllocator?.verifiers_gh_handles.includes(ghUserName.toLowerCase())
+    ) {
       setCurrentActorType(LDNActorType.Verifier)
     }
   }, [session.data?.user?.githubUsername, allocators])
