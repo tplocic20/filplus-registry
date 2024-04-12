@@ -51,15 +51,16 @@ export const AllocatorProvider: React.FunctionComponent<
     if (!allocatorsData || !session?.data?.user?.githubUsername) return
     const githubUsername = session.data.user.githubUsername.toLowerCase()
 
-    const allocatorsDataParsed = allocatorsData.filter((e) =>
+    const allocatorsDataParsed = allocatorsData.map((e) => ({
+      ...e,
+      verifiers_gh_handles: (e.verifiers_gh_handles as string)?.replace(/\s/g,'').split(',').map((el) => el.toLowerCase())
+    })).filter((e) =>
       e.verifiers_gh_handles
         ? e.verifiers_gh_handles
-            .split(',')
             .map((handle) => handle.trim().toLowerCase())
             .includes(githubUsername)
         : false,
     )
-
     setAllocators(allocatorsDataParsed)
   }, [allocatorsData, session?.data?.user?.githubUsername])
 
