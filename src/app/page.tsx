@@ -172,7 +172,7 @@ export default function Home(): JSX.Element {
                 <SelectItem value="StartSignDatacap">
                   Start signing datacap
                 </SelectItem>
-                <SelectItem value="Submitted">Governance Review</SelectItem>
+                <SelectItem value="Submitted">Verifier Review</SelectItem>
               </SelectContent>
             </Select>
             {allocators && allocators.length > 0 && (

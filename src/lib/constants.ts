@@ -17,7 +17,7 @@ export const allocationActiveColor = {
 }
 
 export const stateMapping = {
-  Submitted: 'Pending Governance Review',
+  Submitted: 'Pending Verifier Review',
   StartSignDatacap: 'Start sign datacap',
   ReadyToSign: 'Ready to sign',
   Granted: 'Granted',

@@ -141,7 +141,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     const ghUserName = session.data.user.githubUsername
     const currentAllocator = allocators.find((e) => e.repo === repo)
-    if (currentAllocator?.verifiers_gh_handles.includes(ghUserName)) {
+    if (currentAllocator?.verifiers_gh_handles.includes(ghUserName.toLowerCase())) {
       setCurrentActorType(LDNActorType.Verifier)
     }
   }, [session.data?.user?.githubUsername, allocators])
@@ -209,7 +209,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     switch (application.Lifecycle.State) {
       case 'Submitted':
-        setButtonText('Complete governance review')
+        setButtonText('Complete verifier review')
         break
 
       case 'ReadyToSign':
