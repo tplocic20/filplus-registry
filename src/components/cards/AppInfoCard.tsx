@@ -395,79 +395,87 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       )}
 
       <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
-        <CardHeader className="border-b pb-2 mb-4">
-          <h2 className="text-xl font-bold">Client Info</h2>
-        </CardHeader>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <CardHeader className="border-b pb-2 mb-4">
+              <h2 className="text-xl font-bold">Client Info</h2>
+            </CardHeader>
 
-        <CardContent className="grid text-sm mb-4">
-          {[
-            ['Name', application.Client.Name],
-            ['Region', application.Client.Region],
-            ['Industry', application.Client.Industry],
-            ['Website', application.Client.Website],
-            ['Social', application.Client['Social Media']],
-            ['Social Media Type', application.Client['Social Media Type']],
-            ['Address', application.Lifecycle['On Chain Address']],
-          ].map(([label, value], idx) => {
-            const rowStyles = getRowStyles(idx)
-            return (
-              <div
-                key={label}
-                className={`flex items-center p-2 justify-between ${rowStyles}`}
-              >
-                <p className="text-gray-600">{label}</p>
-                {label === 'Address' ? (
-                  <a
-                    href={`https://filfox.info/en/address/${value}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gray-800"
+            <CardContent className="grid text-sm mb-4">
+              {[
+                ['Name', application.Client.Name],
+                ['Region', application.Client.Region],
+                ['Industry', application.Client.Industry],
+                ['Website', application.Client.Website],
+                ['Social', application.Client['Social Media']],
+                ['Social Media Type', application.Client['Social Media Type']],
+                ['Address', application.Lifecycle['On Chain Address']],
+              ].map(([label, value], idx) => {
+                const rowStyles = getRowStyles(idx)
+                return (
+                  <div
+                    key={label}
+                    className={`flex items-center p-2 justify-between ${rowStyles}`}
                   >
-                    {value}
-                  </a>
-                ) : (
-                  <p className="font-medium text-gray-800">{value}</p>
-                )}
-              </div>
-            )
-          })}
-        </CardContent>
-        <CardHeader className="border-b pb-2 mb-4">
-          <h2 className="text-xl font-bold">Datacap Info</h2>
-        </CardHeader>
+                    <p className="text-gray-600">{label}</p>
+                    {label === 'Address' ? (
+                      <a
+                        href={`https://filfox.info/en/address/${value}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-gray-800"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      <p className="font-medium text-gray-800">{value}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </CardContent>
+          </div>
+          <div className="flex-1">
+            <CardHeader className="border-b pb-2 mb-4">
+              <h2 className="text-xl font-bold">Datacap Info</h2>
+            </CardHeader>
 
-        <CardContent className="grid text-sm">
-          {[
-            ['Status', stateLabel],
-            ['Data Type', application.Datacap['Data Type']],
-            [
-              'Total Requested Amount',
-              application.Datacap['Total Requested Amount'],
-            ],
-            ['Single Size Dataset', application.Datacap['Single Size Dataset']],
-            ['Replicas', application.Datacap.Replicas.toString()],
-            ['Weekly Allocation', application.Datacap['Weekly Allocation']],
-          ].map(([label, value], idx) => {
-            const rowStyles = getRowStyles(idx)
-            return (
-              <div
-                key={idx}
-                className={`flex items-center p-2 justify-between ${rowStyles}`}
-              >
-                <p className="text-gray-600">{label}</p>
-                {label === 'Status' ? (
-                  <span
-                    className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+            <CardContent className="grid text-sm">
+              {[
+                ['Status', stateLabel],
+                [
+                  'Total Requested Amount',
+                  application.Datacap['Total Requested Amount'],
+                ],
+                [
+                  'Single Size Dataset',
+                  application.Datacap['Single Size Dataset'],
+                ],
+                ['Replicas', application.Datacap.Replicas.toString()],
+                ['Weekly Allocation', application.Datacap['Weekly Allocation']],
+              ].map(([label, value], idx) => {
+                const rowStyles = getRowStyles(idx)
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center p-2 justify-between ${rowStyles}`}
                   >
-                    {value}
-                  </span>
-                ) : (
-                  <p className="font-medium text-gray-800">{value}</p>
-                )}
-              </div>
-            )
-          })}
-        </CardContent>
+                    <p className="text-gray-600">{label}</p>
+                    {label === 'Status' ? (
+                      <span
+                        className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+                      >
+                        {value}
+                      </span>
+                    ) : (
+                      <p className="font-medium text-gray-800">{value}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </CardContent>
+          </div>
+        </div>
 
         <CardContent>
           {lastAllocation !== undefined && (
@@ -556,7 +564,12 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                                 >
                                   {e}
                                   {allocationType === 'percentage'
-                                    ? `% - ${calculateDatacap(e, application.Datacap['Total Requested Amount'])}`
+                                    ? `% - ${calculateDatacap(
+                                        e,
+                                        application.Datacap[
+                                          'Total Requested Amount'
+                                        ],
+                                      )}`
                                     : ''}
                                 </MenuItem>
                               )
