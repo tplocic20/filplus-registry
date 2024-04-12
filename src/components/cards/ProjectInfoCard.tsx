@@ -23,9 +23,6 @@ const ProjectInfoCard: React.FC<ProjectInfoCardProps> = ({ application }) => {
 
   return (
     <>
-      <h2 className="text-3xl font-bold tracking-tight mb-6">
-        Project Information
-      </h2>
       <Card className="bg-gray-50 p-4 rounded-lg shadow-md select-none">
         <CardHeader
           className={`${
@@ -33,7 +30,7 @@ const ProjectInfoCard: React.FC<ProjectInfoCardProps> = ({ application }) => {
           } pb-2 mb-4 flex flex-row justify-between items-center cursor-pointer`}
           onClick={toggleExpanded}
         >
-          <h2 className="text-xl font-bold">{projectId as string}</h2>
+          <h2 className="text-xl font-bold">Project Information</h2>
           <div>{isExpanded ? <FaChevronUp /> : <FaChevronDown />}</div>
         </CardHeader>
 
