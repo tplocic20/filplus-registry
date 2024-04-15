@@ -283,7 +283,21 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           break
         case 'ReadyToSign':
           if (requestId != null && userName != null) {
-            await mutationProposal.mutateAsync({ requestId, userName })
+            if (application['Allocation Requests'].length > 1) {
+              var validatedAllocationAmount = validateDatacap(
+                allocationAmount,
+                application.Datacap['Total Requested Amount'],
+              )
+              if (!validatedAllocationAmount) {
+                setApiCalling(false)
+                return
+              }
+            }
+            await mutationProposal.mutateAsync({
+              requestId,
+              userName,
+              allocationAmount: validatedAllocationAmount,
+            })
           }
           break
         case 'StartSignDatacap':
@@ -322,6 +336,32 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
     setApiCalling(false)
   }
+
+  const shouldShowAllocationAmountInput = (): boolean => {
+    if (application.Lifecycle.State === 'Submitted') return true
+
+    if (
+      application.Lifecycle.State === 'ReadyToSign' &&
+      application['Allocation Requests'].length > 1
+    )
+      return true
+
+    return false
+  }
+
+  useEffect(() => {
+    // if not the first allocation, prefill the amount with ssa bot suggested value
+    if (
+      application.Lifecycle.State === 'ReadyToSign' &&
+      application['Allocation Requests'].length > 1
+    ) {
+      setAllocationAmount(
+        application['Allocation Requests'].find((e) => e.Active)?.[
+          'Allocation Amount'
+        ] ?? '',
+      )
+    }
+  }, [])
 
   const stateLabel =
     stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
@@ -492,7 +532,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         {application?.Lifecycle?.State !== 'Granted' &&
           session?.data?.user?.name !== undefined && (
             <CardFooter className="flex flex-col items-end border-t pt-4 mt-4 justify-center gap-3">
-              {application?.Lifecycle?.State === 'Submitted' && (
+              {shouldShowAllocationAmountInput() && (
                 <div className="flex gap-3 items-center">
                   <FormControl>
                     <FormLabel id="demo-controlled-radio-buttons-group">

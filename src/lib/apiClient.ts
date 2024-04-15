@@ -195,12 +195,14 @@ export const postApplicationProposal = async (
   repo: string,
   address: string,
   signature: string,
+  allocationAmount?: string,
 ): Promise<Application | undefined> => {
   try {
     const { data } = await apiClient.post(
       `verifier/application/propose`,
       {
         request_id: requestId,
+        new_allocation_amount: allocationAmount,
         owner,
         repo,
         signer: {

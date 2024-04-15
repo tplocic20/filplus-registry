@@ -25,7 +25,7 @@ interface ApplicationActions {
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    { requestId: string; userName: string; allocation_amount?: string },
+    { requestId: string; userName: string; allocationAmount?: string },
     unknown
   >
   mutationApproval: UseMutationResult<
@@ -148,25 +148,40 @@ const useApplicationActions = (
   const mutationProposal = useMutation<
     Application | undefined,
     Error,
-    { requestId: string; userName: string },
+    { requestId: string; userName: string; allocationAmount?: string },
     unknown
   >(
-    async ({ requestId, userName }) => {
+    async ({ requestId, userName, allocationAmount }) => {
       const clientAddress =
         (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
         initialApplication.Lifecycle['On Chain Address'].substring(1)
-      const datacap = initialApplication['Allocation Requests'].find(
-        (alloc) => alloc.Active,
-      )?.['Allocation Amount']
+      let proposalAllocationAmount = ''
 
-      if (datacap == null) throw new Error('No active allocation found')
+      if (allocationAmount) {
+        proposalAllocationAmount = allocationAmount
+      } else {
+        proposalAllocationAmount =
+          initialApplication['Allocation Requests'].find(
+            (alloc) => alloc.Active,
+          )?.['Allocation Amount'] ?? ''
+      }
 
-      const proposalTx = await getProposalTx(clientAddress, datacap)
+      if (!proposalAllocationAmount) {
+        throw new Error('No active allocation found')
+      }
+
+      const proposalTx = await getProposalTx(
+        clientAddress,
+        proposalAllocationAmount,
+      )
       if (proposalTx !== false) {
         throw new Error('This datacap allocation is already proposed')
       }
 
-      const messageCID = await sendProposal(clientAddress, datacap)
+      const messageCID = await sendProposal(
+        clientAddress,
+        proposalAllocationAmount,
+      )
 
       if (messageCID == null) {
         throw new Error(
@@ -182,6 +197,7 @@ const useApplicationActions = (
         repo,
         activeAddress,
         messageCID,
+        allocationAmount,
       )
     },
     {

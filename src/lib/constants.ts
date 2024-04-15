@@ -6,6 +6,7 @@ export const requestTypeColor = {
 
 export const stateColor = {
   Submitted: 'bg-blue-400 text-white',
+  ChangesRequested: 'bg-yellow-500 text-black',
   StartSignDatacap: 'bg-purple-400 text-white',
   ReadyToSign: 'bg-orange-500 text-white',
   Granted: 'bg-green-400 text-white',
@@ -18,7 +19,8 @@ export const allocationActiveColor = {
 
 export const stateMapping = {
   Submitted: 'Pending Verifier Review',
-  StartSignDatacap: 'Start sign datacap',
+  ChangesRequested: 'Changes requested',
   ReadyToSign: 'Ready to sign',
+  StartSignDatacap: 'Start sign datacap',
   Granted: 'Granted',
 }
