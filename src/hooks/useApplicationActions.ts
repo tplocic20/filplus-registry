@@ -298,7 +298,7 @@ const useApplicationActions = (
         owner,
         repo,
         activeAddress,
-        'testappr',
+        messageCID,
       )
     },
     {
