@@ -657,7 +657,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                 </div>
               )}
               {buttonText &&
-                (!walletConnected ||
+                (walletConnected ||
                   ['Submitted', 'ChangesRequested'].includes(
                     application?.Lifecycle?.State,
                   )) && (
