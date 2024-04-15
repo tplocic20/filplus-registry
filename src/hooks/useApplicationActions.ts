@@ -232,7 +232,7 @@ const useApplicationActions = (
       return await postApplicationProposal(
         initialApplication.ID,
         requestId,
-        'clriesco',
+        userName,
         owner,
         repo,
         activeAddress,
