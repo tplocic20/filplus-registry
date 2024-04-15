@@ -369,7 +369,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       application.Lifecycle.State === 'ReadyToSign' &&
       application['Allocation Requests'].length > 1
     ) {
-      setAllocationType('manual');
+      setAllocationType('manual')
       setAllocationAmount(
         application['Allocation Requests'].find((e) => e.Active)?.[
           'Allocation Amount'

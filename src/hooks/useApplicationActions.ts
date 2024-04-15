@@ -275,21 +275,21 @@ const useApplicationActions = (
 
       if (datacap == null) throw new Error('No active allocation found')
 
-      // const proposalTx = await getProposalTx(clientAddress, datacap)
+      const proposalTx = await getProposalTx(clientAddress, datacap)
 
-      // if (proposalTx === false) {
-      //   throw new Error(
-      //     'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
-      //   )
-      // }
+      if (proposalTx === false) {
+        throw new Error(
+          'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
+        )
+      }
 
-      // const messageCID = await sendApproval(proposalTx as string)
+      const messageCID = await sendApproval(proposalTx as string)
 
-      // if (messageCID == null) {
-      //   throw new Error(
-      //     'Error sending proposal. Please try again or contact support.',
-      //   )
-      // }
+      if (messageCID == null) {
+        throw new Error(
+          'Error sending proposal. Please try again or contact support.',
+        )
+      }
 
       return await postApplicationApproval(
         initialApplication.ID,
