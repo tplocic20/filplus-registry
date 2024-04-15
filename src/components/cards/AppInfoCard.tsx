@@ -60,6 +60,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     isApiCalling,
     setApiCalling,
     mutationTrigger,
+    mutationApproveChanges,
     mutationProposal,
     mutationApproval,
     walletError,
@@ -214,6 +215,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         setButtonText('Complete verifier review')
         break
 
+      case 'ChangesRequested':
+        setButtonText('Approve changes')
+        break
+
       case 'ReadyToSign':
         setButtonText('Propose')
         break
@@ -281,6 +286,15 @@ const AppInfoCard: React.FC<ComponentProps> = ({
             })
           }
           break
+
+        case 'ChangesRequested':
+          if (userName != null) {
+            await mutationApproveChanges.mutateAsync({
+              userName,
+            })
+          }
+          break
+
         case 'ReadyToSign':
           if (requestId != null && userName != null) {
             if (application['Allocation Requests'].length > 1) {
@@ -643,8 +657,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                 </div>
               )}
               {buttonText &&
-                (walletConnected ||
-                  application.Lifecycle.State === 'Submitted') && (
+                (!walletConnected ||
+                  ['Submitted', 'ChangesRequested'].includes(
+                    application?.Lifecycle?.State,
+                  )) && (
                   <Button
                     onClick={() => void handleButtonClick()}
                     disabled={
@@ -660,7 +676,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
               {!walletConnected &&
                 currentActorType === LDNActorType.Verifier &&
-                application?.Lifecycle?.State !== 'Submitted' && (
+                !['Submitted', 'ChangesRequested'].includes(
+                  application?.Lifecycle?.State,
+                ) && (
                   <Button
                     onClick={() => void handleConnectLedger()}
                     disabled={

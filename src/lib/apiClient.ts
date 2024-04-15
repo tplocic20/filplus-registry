@@ -181,6 +181,38 @@ export const postApplicationTrigger = async (
 }
 
 /**
+ * Approves the changes submitted on an issue based on the application id.
+ *
+ * @param id - The ID of the application to trigger.
+ * @param actor - The actor that triggers the application.
+ * @returns A promise that resolves with the application data after the trigger or undefined if there's an error.
+ */
+export const postApproveChanges = async (
+  id: string,
+  actor: string,
+  repo: string,
+  owner: string,
+): Promise<Application | undefined> => {
+  try {
+    const { data } = await apiClient.post(
+      `verifier/application/approve_changes`,
+      {},
+      {
+        params: {
+          github_username: actor,
+          repo,
+          owner,
+          id,
+        },
+      },
+    )
+    return data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+/**
  * Proposes a LDN application based on its ID.
  *
  * @param id - The ID of the application to propose.

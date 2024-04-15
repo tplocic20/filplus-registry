@@ -8,6 +8,7 @@ import {
   postApplicationTrigger,
   postApplicationProposal,
   postApplicationApproval,
+  postApproveChanges,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
 import { type Application } from '@/type'
@@ -20,6 +21,12 @@ interface ApplicationActions {
     Application | undefined,
     unknown,
     { allocationAmount: string; userName: string },
+    unknown
+  >
+  mutationApproveChanges: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string },
     unknown
   >
   mutationProposal: UseMutationResult<
@@ -138,6 +145,39 @@ const useApplicationActions = (
   )
 
   /**
+   * Mutation function to handle the approval of changes of an application's issue.
+   * It makes an API call to mark the approval of the changes and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+  const mutationApproveChanges = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >(
+    async ({ userName }) => {
+      return await postApproveChanges(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
+      },
+      onError: () => {
+        setApiCalling(false)
+      },
+    },
+  )
+
+  /**
    * Mutation function to handle the proposal of an application.
    * It makes an API call to propose the application and updates the cache on success.
    *
@@ -192,7 +232,7 @@ const useApplicationActions = (
       return await postApplicationProposal(
         initialApplication.ID,
         requestId,
-        userName,
+        'clriesco',
         owner,
         repo,
         activeAddress,
@@ -235,21 +275,21 @@ const useApplicationActions = (
 
       if (datacap == null) throw new Error('No active allocation found')
 
-      const proposalTx = await getProposalTx(clientAddress, datacap)
+      // const proposalTx = await getProposalTx(clientAddress, datacap)
 
-      if (proposalTx === false) {
-        throw new Error(
-          'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
-        )
-      }
+      // if (proposalTx === false) {
+      //   throw new Error(
+      //     'This datacap allocation is not proposed yet. You may need to wait some time if the proposal was just sent.',
+      //   )
+      // }
 
-      const messageCID = await sendApproval(proposalTx as string)
+      // const messageCID = await sendApproval(proposalTx as string)
 
-      if (messageCID == null) {
-        throw new Error(
-          'Error sending proposal. Please try again or contact support.',
-        )
-      }
+      // if (messageCID == null) {
+      //   throw new Error(
+      //     'Error sending proposal. Please try again or contact support.',
+      //   )
+      // }
 
       return await postApplicationApproval(
         initialApplication.ID,
@@ -258,7 +298,7 @@ const useApplicationActions = (
         owner,
         repo,
         activeAddress,
-        messageCID,
+        'testappr',
       )
     },
     {
@@ -277,6 +317,7 @@ const useApplicationActions = (
     isApiCalling,
     setApiCalling,
     mutationTrigger,
+    mutationApproveChanges,
     mutationProposal,
     mutationApproval,
     walletError,

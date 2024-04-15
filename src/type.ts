@@ -38,6 +38,7 @@ export interface Datacap {
 export interface Lifecycle {
   State:
     | 'Submitted'
+    | 'ChangesRequested'
     | 'ReadyToSign'
     | 'StartSignDatacap'
     | 'Granted'
