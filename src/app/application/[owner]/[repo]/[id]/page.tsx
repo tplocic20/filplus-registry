@@ -48,6 +48,9 @@ const ApplicationDetailPage: React.FC<ComponentProps> = ({
           <AppHistory
             datacapAllocations={data.application_file?.['Allocation Requests']}
             actor={data.application_file?.Lifecycle['Validated By']}
+            totalRequestedAmount={
+              data.application_file.Datacap['Total Requested Amount']
+            }
           />
         </div>
       </div>
