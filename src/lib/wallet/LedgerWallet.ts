@@ -44,7 +44,7 @@ export class LedgerWallet extends BaseWallet {
       }),
       {
         sign: this.sign,
-        getAccounts: this.getAccounts,
+        getAccounts: () => this.loadedAccounts,
       },
       process.env.NEXT_PUBLIC_MODE !== 'production',
     )
@@ -114,7 +114,6 @@ export class LedgerWallet extends BaseWallet {
     }
 
     this.loadedAccounts = this.loadedAccounts.concat(accounts)
-
     return accounts
   }
 
@@ -128,6 +127,7 @@ export class LedgerWallet extends BaseWallet {
     filecoinMessage: string,
     indexAccount: number,
   ): Promise<any> => {
+    console.log(`Signing with account n.: ${indexAccount}`)
     this.setMessage('Please review and sign the transaction on your Ledger.')
     const serializedMessage = signer.transactionSerialize(filecoinMessage)
     const signedMessage = this.handleErrors(
