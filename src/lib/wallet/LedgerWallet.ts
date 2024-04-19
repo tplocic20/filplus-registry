@@ -12,6 +12,8 @@ export class LedgerWallet extends BaseWallet {
   ledgerBusy = false
   ledgerApp: any = false
   name: string = 'Ledger'
+  maxAccounts: number = config.numberOfWalletAccounts
+  loadedAccounts: string[] = []
 
   /**
    * Loads the wallet given a network index.
@@ -42,7 +44,7 @@ export class LedgerWallet extends BaseWallet {
       }),
       {
         sign: this.sign,
-        getAccounts: this.getAccounts,
+        getAccounts: () => this.loadedAccounts,
       },
       process.env.NEXT_PUBLIC_MODE !== 'production',
     )
@@ -97,10 +99,11 @@ export class LedgerWallet extends BaseWallet {
    * @param nStart - The starting index for the accounts to fetch.
    * @returns - An array of account addresses.
    */
-  public getAccounts = async (nStart = 0): Promise<string[]> => {
-    const paths = Array.from(
-      { length: config.numberOfWalletAccounts - nStart },
-      (_, i) => this.getBIP44Path(i + nStart),
+  public getAccounts = async (numAccounts = 0): Promise<string[]> => {
+    if (numAccounts === 0) numAccounts = config.numberOfWalletAccounts
+
+    const paths = Array.from({ length: numAccounts }, (_, i) =>
+      this.getBIP44Path(this.loadedAccounts.length + i),
     )
     const accounts = []
 
@@ -110,6 +113,7 @@ export class LedgerWallet extends BaseWallet {
       accounts.push(returnLoad.addrString)
     }
 
+    this.loadedAccounts = this.loadedAccounts.concat(accounts)
     return accounts
   }
 
@@ -123,6 +127,7 @@ export class LedgerWallet extends BaseWallet {
     filecoinMessage: string,
     indexAccount: number,
   ): Promise<any> => {
+    console.log(`Signing with account n.: ${indexAccount}`)
     this.setMessage('Please review and sign the transaction on your Ledger.')
     const serializedMessage = signer.transactionSerialize(filecoinMessage)
     const signedMessage = this.handleErrors(
