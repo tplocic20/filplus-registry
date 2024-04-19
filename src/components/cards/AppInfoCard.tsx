@@ -68,6 +68,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setActiveAccountIndex,
     accounts,
     message,
+    loadMoreAccounts,
   } = useApplicationActions(initialApplication, repo, owner)
   const [buttonText, setButtonText] = useState('')
   const [modalMessage, setModalMessage] = useState<string | null>(null)
@@ -147,7 +148,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     ) {
       setCurrentActorType(LDNActorType.Verifier)
     }
-  }, [session.data?.user?.githubUsername, allocators])
+  }, [session.data?.user?.githubUsername, allocators, repo])
 
   /**
    * Handles the mutation error event.
@@ -182,11 +183,18 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       const currentAllocator = allocators.find((e) => e.repo === repo)
       if (!currentAllocator) return
       setIsWalletConnecting(true)
+
+      if (accounts.length) {
+        setIsSelectAccountModalOpen(true)
+        setIsWalletConnecting(false)
+        return
+      }
+
       const { multisig_address: multisigAddress } = currentAllocator
-      const accounts = multisigAddress
+      const newAccounts = multisigAddress
         ? await initializeWallet(multisigAddress)
         : await initializeWallet()
-      if (accounts.length) setIsSelectAccountModalOpen(true)
+      if (newAccounts.length) setIsSelectAccountModalOpen(true)
       setIsWalletConnecting(false)
       return
     } catch (error) {
@@ -194,6 +202,13 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
     setIsWalletConnecting(false)
     setWalletConnected(false)
+  }
+
+  /**
+   * Handles Load more accounts event. This function is called when the user clicks the Load more button.
+   */
+  const handleLoadMore = async (): Promise<void> => {
+    await loadMoreAccounts(5)
   }
 
   /**
@@ -265,6 +280,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     )?.ID
 
     const userName = session.data?.user?.githubUsername
+    let validatedAllocationAmount
 
     try {
       switch (application.Lifecycle.State) {
@@ -298,7 +314,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         case 'ReadyToSign':
           if (requestId != null && userName != null) {
             if (application['Allocation Requests'].length > 1) {
-              var validatedAllocationAmount = validateDatacap(
+              validatedAllocationAmount = validateDatacap(
                 allocationAmount,
                 application.Datacap['Total Requested Amount'],
               )
@@ -376,7 +392,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         ] ?? '',
       )
     }
-  }, [])
+  }, [application])
 
   const stateLabel =
     stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
@@ -416,6 +432,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       <AccountSelectionDialog
         open={isSelectAccountModalOpen}
         accounts={accounts}
+        onLoadMore={async () => {
+          await handleLoadMore()
+        }}
         onClose={() => {
           setIsSelectAccountModalOpen(false)
         }}

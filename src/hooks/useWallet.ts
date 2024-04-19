@@ -40,6 +40,7 @@ interface WalletState {
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   message: string | null
   setMessage: (message: string | null) => void
+  loadMoreAccounts: (number: number) => Promise<void>
 }
 
 /**
@@ -137,6 +138,21 @@ const useWallet = (): WalletState => {
   )
 
   /**
+   * Load more accounts from the wallet.
+   *
+   * @param {number} number - The number of accounts to load.
+   * @returns {Promise<void>} - A promise that resolves when the accounts are loaded.
+   */
+  const loadMoreAccounts = useCallback(
+    async (number: number) => {
+      if (wallet == null) throw new Error('No wallet initialized.')
+      const newAccounts = await wallet.getAccounts(number)
+      setAccounts([...accounts, ...newAccounts])
+    },
+    [wallet, accounts],
+  )
+
+  /**
    * Sign a message using the currently initialized wallet.
    *
    * @param {string} message - The message to be signed.
@@ -170,7 +186,14 @@ const useWallet = (): WalletState => {
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = Math.floor(anyToBytes(datacap))
-      const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      let pendingTxs
+      try {
+        pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      } catch (error) {
+        throw new Error(
+          'An error with the lotus node occurred. Please reload. If the problem persists, contact support.',
+        )
+      }
       const pendingForClient = pendingTxs?.filter(
         (tx: any) =>
           tx?.parsed?.params?.address === clientAddress &&
@@ -254,6 +277,7 @@ const useWallet = (): WalletState => {
     message,
     setMessage,
     accounts,
+    loadMoreAccounts,
   }
 }
 
