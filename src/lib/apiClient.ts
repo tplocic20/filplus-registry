@@ -359,3 +359,20 @@ export const submitGitHubInstallationId = async (
     throw e
   }
 }
+
+export const cacheRenewal = async (
+  owner: string,
+  repo: string,
+): Promise<string> => {
+  try {
+    const { data } = await apiClient.post(`application/cache/renewal`, {
+      owner,
+      repo,
+    })
+
+    return data
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}

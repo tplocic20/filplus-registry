@@ -2,6 +2,17 @@
 import AppCard from '@/components/cards/HomePageCard'
 import { generateColumns } from '@/components/table/columns'
 import { DataTable } from '@/components/table/data-table'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -14,13 +25,17 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 import { useAllocator } from '@/lib/AllocatorProvider'
-import { getAllApplications, getApplicationsForRepo } from '@/lib/apiClient'
+import {
+  cacheRenewal,
+  getAllApplications,
+  getApplicationsForRepo,
+} from '@/lib/apiClient'
 import { type Application } from '@/type'
 import Fuse from 'fuse.js'
 import { Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { type MouseEventHandler, useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 import { toast } from 'react-toastify'
 
@@ -68,6 +83,8 @@ export default function Home(): JSX.Element {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Application[]>([])
+
+  const [openDialog, setOpenDialog] = useState(false)
 
   const searchParams = useSearchParams()
   const notification = searchParams.get('notification')
@@ -132,6 +149,23 @@ export default function Home(): JSX.Element {
       searchTerm !== '' ? results.map((result) => result.item) : filteredData
     setSearchResults(searchResults)
   }, [searchTerm, filter, data, isLoading])
+
+  const handleRenewal = async (): Promise<void> => {
+    try {
+      if (selectedAllocator && selectedAllocator !== 'all') {
+        const { owner, repo } = selectedAllocator
+        const data = await cacheRenewal(owner, repo)
+
+        if (data) {
+          toast.success('Renewal successful')
+          setOpenDialog(false)
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error('Something went wrong! Please try again.')
+    }
+  }
 
   if (isLoading)
     return (
@@ -217,6 +251,44 @@ export default function Home(): JSX.Element {
                   ))}
                 </SelectContent>
               </Select>
+            )}
+
+            {allocators && allocators.length > 0 && (
+              <div>
+                {selectedAllocator && selectedAllocator !== 'all' && (
+                  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="default">Renew cache</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Renew cache</DialogTitle>
+                        <DialogDescription>
+                          This action will renew the cache for{' '}
+                          <span className="text-xs bg-gray-200 p-1 rounded-sm">
+                            {selectedAllocator?.owner}/{selectedAllocator.repo}.
+                          </span>
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                          <Button type="button" variant="secondary">
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          onClick={
+                            handleRenewal as MouseEventHandler<HTMLButtonElement>
+                          }
+                        >
+                          Confirm
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             )}
           </div>
 
