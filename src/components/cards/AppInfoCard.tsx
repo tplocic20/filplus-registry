@@ -184,7 +184,6 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       if (!currentAllocator) return
       setIsWalletConnecting(true)
 
-      console.log(`Current accounts: ${accounts.join(', ')}`)
       if (accounts.length) {
         setIsSelectAccountModalOpen(true)
         setIsWalletConnecting(false)

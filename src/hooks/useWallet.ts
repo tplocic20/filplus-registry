@@ -186,7 +186,14 @@ const useWallet = (): WalletState => {
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = Math.floor(anyToBytes(datacap))
-      const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      let pendingTxs
+      try {
+        pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      } catch (error) {
+        throw new Error(
+          'An error with the lotus node occurred. Please reload. If the problem persists, contact support.',
+        )
+      }
       const pendingForClient = pendingTxs?.filter(
         (tx: any) =>
           tx?.parsed?.params?.address === clientAddress &&
