@@ -40,6 +40,7 @@ interface WalletState {
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   message: string | null
   setMessage: (message: string | null) => void
+  loadMoreAccounts: (number: number) => Promise<void>
 }
 
 /**
@@ -134,6 +135,21 @@ const useWallet = (): WalletState => {
       }
     },
     [initNetworkIndex],
+  )
+
+  /**
+   * Load more accounts from the wallet.
+   *
+   * @param {number} number - The number of accounts to load.
+   * @returns {Promise<void>} - A promise that resolves when the accounts are loaded.
+   */
+  const loadMoreAccounts = useCallback(
+    async (number: number) => {
+      if (wallet == null) throw new Error('No wallet initialized.')
+      const newAccounts = await wallet.getAccounts(number)
+      setAccounts([...accounts, ...newAccounts])
+    },
+    [wallet, accounts],
   )
 
   /**
@@ -254,6 +270,7 @@ const useWallet = (): WalletState => {
     message,
     setMessage,
     accounts,
+    loadMoreAccounts,
   }
 }
 

@@ -12,12 +12,15 @@ export class LedgerWallet extends BaseWallet {
   ledgerBusy = false
   ledgerApp: any = false
   name: string = 'Ledger'
+  maxAccounts: number = config.numberOfWalletAccounts
+  loadedAccounts: string[] = []
 
   /**
    * Loads the wallet given a network index.
    * @param networkIndex - Index of the network to load the wallet for.
    */
   public async loadWallet(): Promise<void> {
+    console.log('Loading Ledger wallet')
     await this.initializeApi()
     await this.initializeLedger()
   }
@@ -97,10 +100,14 @@ export class LedgerWallet extends BaseWallet {
    * @param nStart - The starting index for the accounts to fetch.
    * @returns - An array of account addresses.
    */
-  public getAccounts = async (nStart = 0): Promise<string[]> => {
-    const paths = Array.from(
-      { length: config.numberOfWalletAccounts - nStart },
-      (_, i) => this.getBIP44Path(i + nStart),
+  public getAccounts = async (numAccounts = 0): Promise<string[]> => {
+    if (numAccounts === 0) numAccounts = config.numberOfWalletAccounts
+    console.log(
+      `Getting accounts from ${this.loadedAccounts.length} to ${this.loadedAccounts.length + numAccounts}`,
+    )
+
+    const paths = Array.from({ length: numAccounts }, (_, i) =>
+      this.getBIP44Path(this.loadedAccounts.length + i + numAccounts),
     )
     const accounts = []
 
@@ -109,6 +116,8 @@ export class LedgerWallet extends BaseWallet {
       this.handleErrors(returnLoad)
       accounts.push(returnLoad.addrString)
     }
+
+    this.loadedAccounts = this.loadedAccounts.concat(accounts)
 
     return accounts
   }

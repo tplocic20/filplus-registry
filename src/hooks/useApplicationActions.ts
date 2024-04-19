@@ -44,6 +44,7 @@ interface ApplicationActions {
   walletError: Error | null
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   setActiveAccountIndex: (index: number) => void
+  loadMoreAccounts: (number: number) => Promise<void>
   message: string | null
   accounts: string[]
 }
@@ -78,6 +79,7 @@ const useApplicationActions = (
     sendApproval,
     message,
     accounts,
+    loadMoreAccounts,
   } = useWallet()
 
   /**
@@ -325,6 +327,7 @@ const useApplicationActions = (
     message,
     setActiveAccountIndex,
     accounts,
+    loadMoreAccounts,
   }
 }
 
