@@ -174,6 +174,38 @@ export default function Home(): JSX.Element {
       </div>
     )
 
+  const sortedResults = searchResults.sort((a, b) => {
+    const ownerA = a.owner.toLowerCase()
+    const ownerB = b.owner.toLowerCase()
+
+    if (ownerA < ownerB) {
+      return -1
+    }
+    if (ownerA > ownerB) {
+      return 1
+    }
+    return 0
+  })
+
+  let prevRepo: string | null = null
+
+  const mappedData = sortedResults.map((item, index) => {
+    const newItem = { ...item }
+
+    if (prevRepo !== null && newItem.repo !== prevRepo) {
+      newItem.fullSpan = true
+    } else {
+      newItem.fullSpan = false
+    }
+
+    if (index === 0) {
+      newItem.fullSpan = true
+    }
+
+    prevRepo = newItem.repo
+    return newItem
+  })
+
   return (
     <main className="mt-10 px-10 grid select-none">
       <Tabs defaultValue="table">
@@ -308,7 +340,7 @@ export default function Home(): JSX.Element {
                   }
                 : undefined,
             )}
-            data={searchResults}
+            data={mappedData}
           />
         </TabsContent>
         <TabsContent value="grid">

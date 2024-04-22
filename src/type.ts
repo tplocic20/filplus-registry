@@ -9,6 +9,7 @@ export interface Application {
   'Allocation Requests': AllocationRequest[]
   repo: string
   owner: string
+  fullSpan?: boolean
 }
 
 export interface Allocation {
