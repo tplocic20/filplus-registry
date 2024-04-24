@@ -126,7 +126,7 @@ const useApplicationActions = (
     })
   }
 
-    /**
+  /**
    * Mutation function to handle the declining of an application.
    * It makes an API call to ddecline the application and updates the cache on success.
    *
@@ -134,10 +134,10 @@ const useApplicationActions = (
    * @param {string} userName - The user's name.
    * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
    */
-    const mutationDecline = useMutation<
+  const mutationDecline = useMutation<
     Application | undefined,
     unknown,
-    { userName: string; },
+    { userName: string },
     unknown
   >(
     async ({ userName }) => {
@@ -159,7 +159,7 @@ const useApplicationActions = (
     },
   )
 
-      /**
+  /**
    * Mutation function to handle the declining of an application.
    * It makes an API call to ddecline the application and updates the cache on success.
    *
@@ -168,31 +168,31 @@ const useApplicationActions = (
    * @param {string} additionalInfoMessage - The verifier's message for the client regarding the additional info required.
    * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
    */
-      const mutationRequestInfo = useMutation<
-      Application | undefined,
-      unknown,
-      { userName: string; additionalInfoMessage: string },
-      unknown
-    >(
-      async ({ userName, additionalInfoMessage }) => {
-        return await postAdditionalInfoRequest(
-          initialApplication.ID,
-          userName,
-          repo,
-          owner,
-          additionalInfoMessage,
-        )
+  const mutationRequestInfo = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string; additionalInfoMessage: string },
+    unknown
+  >(
+    async ({ userName, additionalInfoMessage }) => {
+      return await postAdditionalInfoRequest(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+        additionalInfoMessage,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
       },
-      {
-        onSuccess: (data) => {
-          setApiCalling(false)
-          if (data != null) updateCache(data)
-        },
-        onError: () => {
-          setApiCalling(false)
-        },
+      onError: () => {
+        setApiCalling(false)
       },
-    )
+    },
+  )
 
   /**
    * Mutation function to handle the triggering of an application.

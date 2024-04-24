@@ -196,7 +196,7 @@ export const postAdditionalInfoRequest = async (
     const { data } = await apiClient.post(
       `verifier/application/additional_info_required`,
       {
-        verifier_message: additionalInfoMessage
+        verifier_message: additionalInfoMessage,
       },
       {
         params: {

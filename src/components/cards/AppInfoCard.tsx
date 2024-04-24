@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
+import AccountSelectionDialog from '@/components/ui/ledger-account-select'
 import { Modal } from '@/components/ui/modal'
 import ProgressBar from '@/components/ui/progress-bar'
 import { Spinner } from '@/components/ui/spinner'
@@ -15,7 +15,7 @@ import {
   calculateDatacap,
   getLastDatacapAllocation,
 } from '@/lib/utils'
-import { type Allocation, LDNActorType, type Application } from '@/type'
+import { LDNActorType, type Allocation, type Application } from '@/type'
 import {
   Dialog,
   DialogActions,
@@ -32,12 +32,10 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
-import { set } from 'date-fns'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { redirect } from 'next/navigation'
 
 interface ComponentProps {
   application: Application
@@ -303,7 +301,6 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     )?.ID
 
     const userName = session.data?.user?.githubUsername
-    let validatedAllocationAmount
 
     try {
       switch (application.Lifecycle.State) {
@@ -441,7 +438,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       }))
       return
     }
-    setApiCalling(true);
+    setApiCalling(true)
     const userName = session.data?.user?.githubUsername
     if (!userName) return
     const validatedAllocationAmount = validateAndReturnDatacap(
@@ -458,7 +455,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       const requestId = application['Allocation Requests'].find(
         (alloc) => alloc.Active,
       )?.ID
-      if (!requestId) return;
+      if (!requestId) return
 
       setAllocationAmountConfig((prev) => ({
         ...prev,
@@ -477,8 +474,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       })
     }
 
-
-    setApiCalling(false);
+    setApiCalling(false)
   }
 
   useEffect(() => {
@@ -680,7 +676,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                         'AdditionalInfoSubmitted',
                         'ChangesRequested',
                       ].includes(application?.Lifecycle?.State)) && (
-                        <div className="flex justify-end gap-2 pb-4">
+                      <div className="flex justify-end gap-2 pb-4">
                         {[
                           'Submitted',
                           'AdditionalInfoRequired',
@@ -688,43 +684,46 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                         ].includes(application?.Lifecycle?.State) && (
                           <div className="flex gap-2">
                             <Button
-                              onClick={() =>
+                              onClick={() => {
                                 setAdditionalInfoConfig({
                                   isDialogOpen: true,
                                   message: '',
                                 })
-                              }
+                              }}
                               disabled={isApiCalling}
                               style={{
-                                width: "200px"
+                                width: '200px',
                               }}
                               className="bg-yellow-400 text-black rounded-lg px-4 py-2 hover:bg-yellow-500"
                             >
                               Request Additional Info
                             </Button>
                             <Button
-                              onClick={() => void declineApplication()}
+                              onClick={() => {
+                                void declineApplication()
+                              }}
                               disabled={isApiCalling}
                               style={{
-                                width: "200px"
+                                width: '200px',
                               }}
                               className="bg-red-400 text-white rounded-lg px-4 py-2 hover:bg-red-600"
                             >
                               Decline Application
                             </Button>
-                            
                           </div>
                         )}
                         <Button
-                            onClick={() => void handleButtonClick()}
-                            disabled={isApiCalling}
-                            style={{
-                              width: "200px"
-                            }}
-                            className="bg-blue-400 text-white rounded-lg px-4 py-2 hover:bg-blue-500"
-                          >
-                            {buttonText}
-                          </Button>
+                          onClick={() => {
+                            void handleButtonClick()
+                          }}
+                          disabled={isApiCalling}
+                          style={{
+                            width: '200px',
+                          }}
+                          className="bg-blue-400 text-white rounded-lg px-4 py-2 hover:bg-blue-500"
+                        >
+                          {buttonText}
+                        </Button>
                       </div>
                     )}
 
@@ -737,7 +736,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                       'AdditionalInfoSubmitted',
                     ].includes(application?.Lifecycle?.State) && (
                       <Button
-                        onClick={() => void handleConnectLedger()}
+                        onClick={() => {
+                          void handleConnectLedger()
+                        }}
                         disabled={
                           isWalletConnecting ||
                           isApiCalling ||
@@ -762,7 +763,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       </Card>
       <Dialog
         open={additionalInfoConfig.isDialogOpen}
-        onClose={() => handleAdditionalInfoClose(false)}
+        onClose={() => {
+          void handleAdditionalInfoClose(false)
+        }}
         fullWidth
       >
         <DialogTitle>This message will be posted in the issue</DialogTitle>
@@ -800,13 +803,17 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         >
           <Button
             disabled={isApiCalling}
-            onClick={() => handleAdditionalInfoClose(false)}
+            onClick={() => {
+              void handleAdditionalInfoClose(false)
+            }}
           >
             Cancel
           </Button>
           <Button
             disabled={isApiCalling}
-            onClick={() => handleAdditionalInfoClose(true)}
+            onClick={() => {
+              void handleAdditionalInfoClose(true)
+            }}
           >
             Submit
           </Button>
@@ -814,12 +821,16 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       </Dialog>
       <Dialog
         open={allocationAmountConfig.isDialogOpen}
-        onClose={() => handleAllocationAmountClose(false)}
+        onClose={() => {
+          void handleAllocationAmountClose(false)
+        }}
         fullWidth
       >
-        <DialogTitle 
+        <DialogTitle
         // className='flex justify-center'
-        >Fill DataCap Amount for current allocation</DialogTitle>
+        >
+          Fill DataCap Amount for current allocation
+        </DialogTitle>
         <DialogContent
           style={{
             paddingTop: '8px',
@@ -900,7 +911,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                           <MenuItem
                             key={e}
                             value={
-                              allocationAmountConfig.allocationType === 'percentage'
+                              allocationAmountConfig.allocationType ===
+                              'percentage'
                                 ? calculateDatacap(
                                     e,
                                     application.Datacap[
@@ -911,7 +923,8 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                             }
                           >
                             {e}
-                            {allocationAmountConfig.allocationType === 'percentage'
+                            {allocationAmountConfig.allocationType ===
+                            'percentage'
                               ? `% - ${calculateDatacap(
                                   e,
                                   application.Datacap['Total Requested Amount'],
@@ -937,7 +950,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                       setAllocationAmountConfig((prev) => ({
                         ...prev,
-                        amount: event.target.value
+                        amount: event.target.value,
                       }))
                     }}
                   />
@@ -953,13 +966,13 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         >
           <Button
             disabled={isApiCalling}
-            onClick={() => handleAllocationAmountClose(false)}
+            onClick={() => void handleAllocationAmountClose(false)}
           >
             Cancel
           </Button>
           <Button
             disabled={isApiCalling || !allocationAmountConfig.amount}
-            onClick={() => handleAllocationAmountClose(true)}
+            onClick={() => void handleAllocationAmountClose(true)}
           >
             Submit
           </Button>
