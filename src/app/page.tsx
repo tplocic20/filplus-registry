@@ -187,6 +187,20 @@ export default function Home(): JSX.Element {
     return 0
   })
 
+  sortedResults.forEach((item, index) => {
+    if (index === 0 || item.repo !== sortedResults[index - 1].repo) {
+      const repoIssues = sortedResults.filter(
+        (issue) => issue.repo === item.repo,
+      )
+      repoIssues.sort(
+        (a, b) => parseInt(a['Issue Number']) - parseInt(b['Issue Number']),
+      )
+      repoIssues.forEach((issue, i) => {
+        sortedResults[index + i] = issue
+      })
+    }
+  })
+
   let prevRepo: string | null = null
 
   const mappedData = sortedResults.map((item, index) => {
