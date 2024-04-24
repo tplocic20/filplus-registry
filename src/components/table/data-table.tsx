@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Button } from '../ui/button'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ExternalLink } from 'lucide-react'
 
 interface DataTableProps<TData, TValue> {
   columns: Array<ColumnDef<TData, TValue>>
@@ -101,13 +101,26 @@ export function DataTable<TData, TValue>({
                             colSpan={8}
                             className="py-2 pl-10 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium text-[12px]"
                           >
-                            {(
-                              row.original as Application
-                            )?.owner?.toLocaleUpperCase()}{' '}
-                            /{' '}
-                            {(
-                              row.original as Application
-                            )?.repo?.toLocaleUpperCase()}
+                            <a
+                              className="flex items-center hover:underline underline-offset-4"
+                              target="_blank"
+                              href={`https://github.com/${
+                                (row.original as Application)?.owner
+                              }/${(row.original as Application)?.repo}`}
+                              rel="noreferrer"
+                            >
+                              <span>
+                                {(
+                                  row.original as Application
+                                )?.owner?.toLocaleUpperCase()}{' '}
+                                /{' '}
+                                {(
+                                  row.original as Application
+                                )?.repo?.toLocaleUpperCase()}
+                              </span>
+
+                              <ExternalLink size={14} className="ml-2" />
+                            </a>
                           </td>
                         </tr>
                       )}
