@@ -5,6 +5,8 @@ export const requestTypeColor = {
 }
 
 export const stateColor = {
+  AdditionalInfoRequired: 'bg-red-400 text-white',
+  AdditionalInfoSubmitted: 'bg-yellow-500 text-black', // 'bg-blue-400 text-white
   Submitted: 'bg-blue-400 text-white',
   ChangesRequested: 'bg-yellow-500 text-black',
   StartSignDatacap: 'bg-purple-400 text-white',

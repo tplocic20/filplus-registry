@@ -206,7 +206,16 @@ export default function Home(): JSX.Element {
                 <SelectItem value="StartSignDatacap">
                   Start signing datacap
                 </SelectItem>
+                <SelectItem value="ChangesRequested">
+                  Changes Requested
+                </SelectItem>
                 <SelectItem value="Submitted">Verifier Review</SelectItem>
+                <SelectItem value="AdditionalInfoSubmitted">
+                  Additional Info Submitted
+                </SelectItem>
+                <SelectItem value="AdditionalInfoRequired">
+                  Additional Info Required
+                </SelectItem>
               </SelectContent>
             </Select>
             {allocators && allocators.length > 0 && (

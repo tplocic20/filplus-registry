@@ -37,6 +37,8 @@ export interface Datacap {
 
 export interface Lifecycle {
   State:
+    | 'AdditionalInfoRequired'
+    | 'AdditionalInfoSubmitted'
     | 'Submitted'
     | 'ChangesRequested'
     | 'ReadyToSign'
