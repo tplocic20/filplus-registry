@@ -17,7 +17,8 @@ export const generateColumns = (repoConfig?: {
   const columns: Array<ColumnDef<Application>> = [
     {
       accessorKey: 'Issue Number',
-      header: 'Issue No.',
+      enableHiding: false,
+      header: 'Issue No',
       cell: ({ row }) => (
         <a
           href={`https://github.com/${owner ?? row.original.owner}/${repo ?? row.original.repo}/issues/${row.original['Issue Number']}`}
@@ -25,29 +26,34 @@ export const generateColumns = (repoConfig?: {
           rel="noopener noreferrer"
           className="text-blue-500"
         >
-          {row.original['Issue Number']}
+          #{row.original['Issue Number']}
         </a>
       ),
     },
     {
+      id: 'Client Name',
       accessorKey: 'Client.Name',
       header: 'Data Owner Name',
     },
     {
+      id: 'Client Region',
       accessorKey: 'Client.Region',
       header: 'Data Owner Region',
     },
     {
+      id: 'Client Industry',
       accessorKey: 'Client.Industry',
       header: 'Data Owner Industry',
     },
     {
+      id: 'Datacap requested amount',
       accessorKey: 'Datacap.Total Requested Amount',
       header: 'Requested amount',
     },
     {
       accessorKey: 'Lifecycle.State',
       header: 'Status',
+      enableHiding: false,
       cell: ({ row }) => {
         const allocation = row.original['Allocation Requests'].find(
           (alloc) => alloc.Active,
@@ -87,6 +93,7 @@ export const generateColumns = (repoConfig?: {
       },
     },
     {
+      id: 'Website',
       accessorKey: 'info.core_information.website',
       header: 'Website',
       cell: ({ row }) => (
@@ -102,8 +109,9 @@ export const generateColumns = (repoConfig?: {
     },
     {
       id: 'detail',
+      enableHiding: false,
       cell: ({ row }) => (
-        <Button asChild className="flex sm:w-4/5 lg:w-2/3 xl:w-3/5 mx-auto">
+        <Button asChild className="flex mx-auto">
           <Link
             href={`/application/${owner ?? row.original.owner}/${repo ?? row.original.repo}/${row.original.ID}`}
           >
@@ -114,22 +122,22 @@ export const generateColumns = (repoConfig?: {
     },
   ]
 
-  if (!repo) {
-    columns.splice(
-      1,
-      0,
-      ...[
-        {
-          accessorKey: 'repo',
-          header: 'Repository',
-        },
-        {
-          accessorKey: 'owner',
-          header: 'Owner',
-        },
-      ],
-    )
-  }
+  // if (!repo) {
+  //   columns.splice(
+  //     1,
+  //     0,
+  //     ...[
+  //       {
+  //         accessorKey: 'repo',
+  //         header: 'Repository',
+  //       },
+  //       {
+  //         accessorKey: 'owner',
+  //         header: 'Owner',
+  //       },
+  //     ],
+  //   )
+  // }
 
   return columns
 }
