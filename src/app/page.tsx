@@ -193,7 +193,7 @@ export default function Home(): JSX.Element {
         (issue) => issue.repo === item.repo,
       )
       repoIssues.sort(
-        (a, b) => parseInt(a['Issue Number']) - parseInt(b['Issue Number']),
+        (a, b) => parseInt(b['Issue Number']) - parseInt(a['Issue Number']),
       )
       repoIssues.forEach((issue, i) => {
         sortedResults[index + i] = issue
