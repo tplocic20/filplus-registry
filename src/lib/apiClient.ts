@@ -148,6 +148,74 @@ export const getApplicationByParams = async (
 /**
  * Triggers a LDN application based on its ID.
  *
+ * @param id - The ID of the application to decline.
+ * @param actor - The actor that declines the application.
+ * @returns A promise that resolves with the application data after the declining or undefined if there's an error.
+ */
+export const postApplicationDecline = async (
+  id: string,
+  actor: string,
+  repo: string,
+  owner: string,
+): Promise<Application | undefined> => {
+  try {
+    const { data } = await apiClient.post(
+      `verifier/application/decline`,
+      {},
+      {
+        params: {
+          github_username: actor,
+          repo,
+          owner,
+          id,
+        },
+      },
+    )
+    return data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+/**
+ * Triggers a LDN application based on its ID.
+ *
+ * @param id - The ID of the application to decline.
+ * @param actor - The actor that declines the application.
+ * @param {string} additionalInfoMessage - The verifier's message for the client regarding the additional info required.
+ * @returns A promise that resolves with the application data after the declining or undefined if there's an error.
+ */
+export const postAdditionalInfoRequest = async (
+  id: string,
+  actor: string,
+  repo: string,
+  owner: string,
+  additionalInfoMessage: string,
+): Promise<Application | undefined> => {
+  try {
+    const { data } = await apiClient.post(
+      `verifier/application/additional_info_required`,
+      {
+        verifier_message: additionalInfoMessage
+      },
+      {
+        params: {
+          github_username: actor,
+          repo,
+          owner,
+          id,
+        },
+      },
+    )
+    return data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+/**
+ * Triggers a LDN application based on its ID.
+ *
  * @param id - The ID of the application to trigger.
  * @param actor - The actor that triggers the application.
  * @returns A promise that resolves with the application data after the trigger or undefined if there's an error.

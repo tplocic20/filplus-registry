@@ -41,7 +41,7 @@ const prodConfig = {
     },
   ],
   dev_mode: process.env.NEXT_PUBLIC_MODE,
-  numberOfWalletAccounts: 5,
+  numberOfWalletAccounts: 20,
   mnemonic: process.env.MNEMONIC,
   walletClass: 'LedgerWallet',
   githubRepoUrl:

@@ -9,6 +9,8 @@ import {
   postApplicationProposal,
   postApplicationApproval,
   postApproveChanges,
+  postApplicationDecline,
+  postAdditionalInfoRequest,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
 import { type Application } from '@/type'
@@ -17,6 +19,18 @@ interface ApplicationActions {
   application: Application
   isApiCalling: boolean
   setApiCalling: React.Dispatch<React.SetStateAction<boolean>>
+  mutationRequestInfo: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string; additionalInfoMessage: string },
+    unknown
+  >
+  mutationDecline: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >
   mutationTrigger: UseMutationResult<
     Application | undefined,
     unknown,
@@ -112,12 +126,81 @@ const useApplicationActions = (
     })
   }
 
+    /**
+   * Mutation function to handle the declining of an application.
+   * It makes an API call to ddecline the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+    const mutationDecline = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string; },
+    unknown
+  >(
+    async ({ userName }) => {
+      return await postApplicationDecline(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
+      },
+      onError: () => {
+        setApiCalling(false)
+      },
+    },
+  )
+
+      /**
+   * Mutation function to handle the declining of an application.
+   * It makes an API call to ddecline the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @param {string} additionalInfoMessage - The verifier's message for the client regarding the additional info required.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+      const mutationRequestInfo = useMutation<
+      Application | undefined,
+      unknown,
+      { userName: string; additionalInfoMessage: string },
+      unknown
+    >(
+      async ({ userName, additionalInfoMessage }) => {
+        return await postAdditionalInfoRequest(
+          initialApplication.ID,
+          userName,
+          repo,
+          owner,
+          additionalInfoMessage,
+        )
+      },
+      {
+        onSuccess: (data) => {
+          setApiCalling(false)
+          if (data != null) updateCache(data)
+        },
+        onError: () => {
+          setApiCalling(false)
+        },
+      },
+    )
+
   /**
    * Mutation function to handle the triggering of an application.
    * It makes an API call to trigger the application and updates the cache on success.
    *
    * @function
    * @param {string} userName - The user's name.
+   * @param {string} allocationAmount - The amount of datacap to be allocated in the first allocation process name.
    * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
    */
   const mutationTrigger = useMutation<
@@ -318,6 +401,8 @@ const useApplicationActions = (
     application,
     isApiCalling,
     setApiCalling,
+    mutationRequestInfo,
+    mutationDecline,
     mutationTrigger,
     mutationApproveChanges,
     mutationProposal,
