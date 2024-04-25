@@ -193,7 +193,7 @@ export default function Home(): JSX.Element {
         (issue) => issue.repo === item.repo,
       )
       repoIssues.sort(
-        (a, b) => parseInt(a['Issue Number']) - parseInt(b['Issue Number']),
+        (a, b) => parseInt(b['Issue Number']) - parseInt(a['Issue Number']),
       )
       repoIssues.forEach((issue, i) => {
         sortedResults[index + i] = issue
@@ -252,7 +252,16 @@ export default function Home(): JSX.Element {
                 <SelectItem value="StartSignDatacap">
                   Start signing datacap
                 </SelectItem>
+                <SelectItem value="ChangesRequested">
+                  Changes Requested
+                </SelectItem>
                 <SelectItem value="Submitted">Verifier Review</SelectItem>
+                <SelectItem value="AdditionalInfoSubmitted">
+                  Additional Info Submitted
+                </SelectItem>
+                <SelectItem value="AdditionalInfoRequired">
+                  Additional Info Required
+                </SelectItem>
               </SelectContent>
             </Select>
             {allocators && allocators.length > 0 && (

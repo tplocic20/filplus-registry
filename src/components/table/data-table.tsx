@@ -106,7 +106,7 @@ export function DataTable<TData, TValue>({
                               target="_blank"
                               href={`https://github.com/${
                                 (row.original as Application)?.owner
-                              }/${(row.original as Application)?.repo}`}
+                              }/${(row.original as Application)?.repo}/issues`}
                               rel="noreferrer"
                             >
                               <span>
