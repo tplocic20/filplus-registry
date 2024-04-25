@@ -174,9 +174,9 @@ export default function Home(): JSX.Element {
       </div>
     )
 
-  const sortedResults = searchResults.sort((a, b) => {
-    const ownerA = a.owner.toLowerCase()
-    const ownerB = b.owner.toLowerCase()
+  const sortedResults = searchResults?.sort((a, b) => {
+    const ownerA = a.owner?.toLowerCase()
+    const ownerB = b.owner?.toLowerCase()
 
     if (ownerA < ownerB) {
       return -1
