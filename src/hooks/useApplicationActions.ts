@@ -8,25 +8,46 @@ import {
   postApplicationTrigger,
   postApplicationProposal,
   postApplicationApproval,
+  postApproveChanges,
+  postApplicationDecline,
+  postAdditionalInfoRequest,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
-import { type Application, AppMode } from '@/type'
+import { type Application, type AppMode } from '@/type'
 import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ApplicationActions {
   application: Application
   isApiCalling: boolean
   setApiCalling: React.Dispatch<React.SetStateAction<boolean>>
+  mutationRequestInfo: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string; additionalInfoMessage: string },
+    unknown
+  >
+  mutationDecline: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >
   mutationTrigger: UseMutationResult<
     Application | undefined,
     unknown,
     { allocationAmount: string; userName: string },
     unknown
   >
+  mutationApproveChanges: UseMutationResult<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >
   mutationProposal: UseMutationResult<
     Application | undefined,
     unknown,
-    { requestId: string; userName: string; allocation_amount?: string },
+    { requestId: string; userName: string; allocationAmount?: string },
     unknown
   >
   mutationApproval: UseMutationResult<
@@ -38,6 +59,7 @@ interface ApplicationActions {
   walletError: Error | null
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   setActiveAccountIndex: (index: number) => void
+  loadMoreAccounts: (number: number) => Promise<void>
   message: string | null
   accounts: string[]
 }
@@ -72,6 +94,7 @@ const useApplicationActions = (
     sendApproval,
     message,
     accounts,
+    loadMoreAccounts,
   } = useWallet()
   const { selectedAllocator } = useAllocator()
 
@@ -80,8 +103,8 @@ const useApplicationActions = (
       !!selectedAllocator &&
       typeof selectedAllocator !== 'string' &&
       selectedAllocator?.tooling
-      .split(', ')
-      .includes('smart_contract_allocator') &&
+        .split(', ')
+        .includes('smart_contract_allocator') &&
       !!selectedAllocator?.address
     ) {
       return 'v2'
@@ -121,11 +144,80 @@ const useApplicationActions = (
   }
 
   /**
+   * Mutation function to handle the declining of an application.
+   * It makes an API call to ddecline the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+  const mutationDecline = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >(
+    async ({ userName }) => {
+      return await postApplicationDecline(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
+      },
+      onError: () => {
+        setApiCalling(false)
+      },
+    },
+  )
+
+  /**
+   * Mutation function to handle the declining of an application.
+   * It makes an API call to ddecline the application and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @param {string} additionalInfoMessage - The verifier's message for the client regarding the additional info required.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+  const mutationRequestInfo = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string; additionalInfoMessage: string },
+    unknown
+  >(
+    async ({ userName, additionalInfoMessage }) => {
+      return await postAdditionalInfoRequest(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+        additionalInfoMessage,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
+      },
+      onError: () => {
+        setApiCalling(false)
+      },
+    },
+  )
+
+  /**
    * Mutation function to handle the triggering of an application.
    * It makes an API call to trigger the application and updates the cache on success.
    *
    * @function
    * @param {string} userName - The user's name.
+   * @param {string} allocationAmount - The amount of datacap to be allocated in the first allocation process name.
    * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
    */
   const mutationTrigger = useMutation<
@@ -162,6 +254,39 @@ const useApplicationActions = (
   }
 
   /**
+   * Mutation function to handle the approval of changes of an application's issue.
+   * It makes an API call to mark the approval of the changes and updates the cache on success.
+   *
+   * @function
+   * @param {string} userName - The user's name.
+   * @returns {Promise<void>} - A promise that resolves when the mutation is completed.
+   */
+  const mutationApproveChanges = useMutation<
+    Application | undefined,
+    unknown,
+    { userName: string },
+    unknown
+  >(
+    async ({ userName }) => {
+      return await postApproveChanges(
+        initialApplication.ID,
+        userName,
+        repo,
+        owner,
+      )
+    },
+    {
+      onSuccess: (data) => {
+        setApiCalling(false)
+        if (data != null) updateCache(data)
+      },
+      onError: () => {
+        setApiCalling(false)
+      },
+    },
+  )
+
+  /**
    * Mutation function to handle the proposal of an application.
    * It makes an API call to propose the application and updates the cache on success.
    *
@@ -172,19 +297,33 @@ const useApplicationActions = (
   const mutationProposal = useMutation<
     Application | undefined,
     Error,
-    { requestId: string; userName: string },
+    { requestId: string; userName: string; allocationAmount?: string },
     unknown
   >(
-    async ({ requestId, userName }) => {
-      const clientAddress = getClientAddress()
-      const datacap = initialApplication['Allocation Requests'].find(
-        (alloc) => alloc.Active,
-      )?.['Allocation Amount']
+    async ({ requestId, userName, allocationAmount }) => {
+      const clientAddress =
+        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      let proposalAllocationAmount = ''
 
-      if (datacap == null) throw new Error('No active allocation found')
+      if (allocationAmount) {
+        proposalAllocationAmount = allocationAmount
+      } else {
+        proposalAllocationAmount =
+          initialApplication['Allocation Requests'].find(
+            (alloc) => alloc.Active,
+          )?.['Allocation Amount'] ?? ''
+      }
 
-      const proposalTx = await getProposalTx(clientAddress, datacap, appMode)
+      if (!proposalAllocationAmount) {
+        throw new Error('No active allocation found')
+      }
 
+      const proposalTx = await getProposalTx(
+        clientAddress,
+        proposalAllocationAmount,
+        appMode,
+      )
       if (proposalTx !== false) {
         throw new Error('This datacap allocation is already proposed')
       }
@@ -196,7 +335,7 @@ const useApplicationActions = (
             ? selectedAllocator?.address ?? ''
             : '',
         clientAddress,
-        datacap,
+        proposalAllocationAmount,
       })
 
       if (messageCID == null) {
@@ -213,6 +352,7 @@ const useApplicationActions = (
         repo,
         activeAddress,
         messageCID,
+        allocationAmount,
       )
     },
     {
@@ -289,7 +429,10 @@ const useApplicationActions = (
     application,
     isApiCalling,
     setApiCalling,
+    mutationRequestInfo,
+    mutationDecline,
     mutationTrigger,
+    mutationApproveChanges,
     mutationProposal,
     mutationApproval,
     walletError,
@@ -297,6 +440,7 @@ const useApplicationActions = (
     message,
     setActiveAccountIndex,
     accounts,
+    loadMoreAccounts,
   }
 }
 

@@ -2,6 +2,17 @@
 import AppCard from '@/components/cards/HomePageCard'
 import { generateColumns } from '@/components/table/columns'
 import { DataTable } from '@/components/table/data-table'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -14,13 +25,17 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ToastContent } from '@/components/ui/toast-message-cid'
 import { useAllocator } from '@/lib/AllocatorProvider'
-import { getAllApplications, getApplicationsForRepo } from '@/lib/apiClient'
+import {
+  cacheRenewal,
+  getAllApplications,
+  getApplicationsForRepo,
+} from '@/lib/apiClient'
 import { type Application } from '@/type'
 import Fuse from 'fuse.js'
 import { Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { type MouseEventHandler, useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 import { toast } from 'react-toastify'
 
@@ -68,6 +83,8 @@ export default function Home(): JSX.Element {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Application[]>([])
+
+  const [openDialog, setOpenDialog] = useState(false)
 
   const searchParams = useSearchParams()
   const notification = searchParams.get('notification')
@@ -133,12 +150,75 @@ export default function Home(): JSX.Element {
     setSearchResults(searchResults)
   }, [searchTerm, filter, data, isLoading])
 
+  const handleRenewal = async (): Promise<void> => {
+    try {
+      if (selectedAllocator && selectedAllocator !== 'all') {
+        const { owner, repo } = selectedAllocator
+        const data = await cacheRenewal(owner, repo)
+
+        if (data) {
+          toast.success('Renewal successful')
+          setOpenDialog(false)
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error('Something went wrong! Please try again.')
+    }
+  }
+
   if (isLoading)
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
         <Spinner />
       </div>
     )
+
+  const sortedResults = searchResults?.sort((a, b) => {
+    const ownerA = a.owner?.toLowerCase()
+    const ownerB = b.owner?.toLowerCase()
+
+    if (ownerA < ownerB) {
+      return -1
+    }
+    if (ownerA > ownerB) {
+      return 1
+    }
+    return 0
+  })
+
+  sortedResults.forEach((item, index) => {
+    if (index === 0 || item.repo !== sortedResults[index - 1].repo) {
+      const repoIssues = sortedResults.filter(
+        (issue) => issue.repo === item.repo,
+      )
+      repoIssues.sort(
+        (a, b) => parseInt(b['Issue Number']) - parseInt(a['Issue Number']),
+      )
+      repoIssues.forEach((issue, i) => {
+        sortedResults[index + i] = issue
+      })
+    }
+  })
+
+  let prevRepo: string | null = null
+
+  const mappedData = sortedResults.map((item, index) => {
+    const newItem = { ...item }
+
+    if (prevRepo !== null && newItem.repo !== prevRepo) {
+      newItem.fullSpan = true
+    } else {
+      newItem.fullSpan = false
+    }
+
+    if (index === 0) {
+      newItem.fullSpan = true
+    }
+
+    prevRepo = newItem.repo
+    return newItem
+  })
 
   return (
     <main className="mt-10 px-10 grid select-none">
@@ -172,7 +252,16 @@ export default function Home(): JSX.Element {
                 <SelectItem value="StartSignDatacap">
                   Start signing datacap
                 </SelectItem>
-                <SelectItem value="Submitted">Governance Review</SelectItem>
+                <SelectItem value="ChangesRequested">
+                  Changes Requested
+                </SelectItem>
+                <SelectItem value="Submitted">Verifier Review</SelectItem>
+                <SelectItem value="AdditionalInfoSubmitted">
+                  Additional Info Submitted
+                </SelectItem>
+                <SelectItem value="AdditionalInfoRequired">
+                  Additional Info Required
+                </SelectItem>
               </SelectContent>
             </Select>
             {allocators && allocators.length > 0 && (
@@ -218,6 +307,44 @@ export default function Home(): JSX.Element {
                 </SelectContent>
               </Select>
             )}
+
+            {allocators && allocators.length > 0 && (
+              <div>
+                {selectedAllocator && selectedAllocator !== 'all' && (
+                  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="default">Renew cache</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Renew cache</DialogTitle>
+                        <DialogDescription>
+                          This action will renew the cache for{' '}
+                          <span className="text-xs bg-gray-200 p-1 rounded-sm">
+                            {selectedAllocator?.owner}/{selectedAllocator.repo}.
+                          </span>
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                          <Button type="button" variant="secondary">
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          onClick={
+                            handleRenewal as MouseEventHandler<HTMLButtonElement>
+                          }
+                        >
+                          Confirm
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            )}
           </div>
 
           <TabsList>
@@ -236,7 +363,7 @@ export default function Home(): JSX.Element {
                   }
                 : undefined,
             )}
-            data={searchResults}
+            data={mappedData}
           />
         </TabsContent>
         <TabsContent value="grid">

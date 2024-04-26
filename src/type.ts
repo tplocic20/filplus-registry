@@ -9,6 +9,7 @@ export interface Application {
   'Allocation Requests': AllocationRequest[]
   repo: string
   owner: string
+  fullSpan?: boolean
 }
 
 export interface Allocation {
@@ -37,7 +38,10 @@ export interface Datacap {
 
 export interface Lifecycle {
   State:
+    | 'AdditionalInfoRequired'
+    | 'AdditionalInfoSubmitted'
     | 'Submitted'
+    | 'ChangesRequested'
     | 'ReadyToSign'
     | 'StartSignDatacap'
     | 'Granted'
@@ -114,11 +118,11 @@ export interface Allocator {
   repo: string
   installation_id: string
   multisig_address: string
-  verifiers_gh_handles: string
   multisig_threshold: number
   allocation_amount_type: string | null
   address: string
   tooling: string
+  verifiers_gh_handles: string | string[]
 }
 
 export interface ByteConverterAutoscaleOptions {
@@ -140,5 +144,5 @@ export interface SendProposalProps {
   appMode: AppMode
   contractAddress: string
   clientAddress: string
-  datacap: string
+  proposalAllocationAmount: string
 }

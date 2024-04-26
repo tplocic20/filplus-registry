@@ -5,12 +5,8 @@ import { config } from '../config'
 import { type IWallet, type SendProposalProps } from '@/type'
 import { anyToBytes } from '@/lib/utils'
 import { newFromString } from '@glif/filecoin-address'
-import {
-  decodeFunctionData,
-  encodeFunctionData,
-  parseAbi,
-} from 'viem'
-import { Hex } from 'viem/types/misc'
+import { decodeFunctionData, encodeFunctionData, parseAbi } from 'viem'
+import { type Hex } from 'viem/types/misc'
 
 /**
  * Registry that maps wallet class names to their respective classes.
@@ -48,6 +44,7 @@ interface WalletState {
   initializeWallet: (multisigAddress?: string) => Promise<string[]>
   message: string | null
   setMessage: (message: string | null) => void
+  loadMoreAccounts: (number: number) => Promise<void>
 }
 
 /**
@@ -145,6 +142,21 @@ const useWallet = (): WalletState => {
   )
 
   /**
+   * Load more accounts from the wallet.
+   *
+   * @param {number} number - The number of accounts to load.
+   * @returns {Promise<void>} - A promise that resolves when the accounts are loaded.
+   */
+  const loadMoreAccounts = useCallback(
+    async (number: number) => {
+      if (wallet == null) throw new Error('No wallet initialized.')
+      const newAccounts = await wallet.getAccounts(number)
+      setAccounts([...accounts, ...newAccounts])
+    },
+    [wallet, accounts],
+  )
+
+  /**
    * Sign a message using the currently initialized wallet.
    *
    * @param {string} message - The message to be signed.
@@ -179,7 +191,14 @@ const useWallet = (): WalletState => {
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
       const bytesDatacap = Math.floor(anyToBytes(datacap))
-      const pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      let pendingTxs
+      try {
+        pendingTxs = await wallet.api.pendingTransactions(multisigAddress)
+      } catch (error) {
+        throw new Error(
+          'An error with the lotus node occurred. Please reload. If the problem persists, contact support.',
+        )
+      }
       let pendingForClient = null
       if (appMode !== 'v2') {
         pendingForClient = pendingTxs?.filter(
@@ -188,21 +207,21 @@ const useWallet = (): WalletState => {
             tx?.parsed?.params?.cap === BigInt(bytesDatacap),
         )
       } else {
-        pendingForClient = pendingTxs?.filter((tx: any, index) => {
-          if(index < 4) return false
+        pendingForClient = pendingTxs?.filter((tx: any) => {
           const abi = parseAbi([
             'function addVerifiedClient(bytes clientAddress, uint256 amount)',
           ])
 
-          const paramsHex = tx.parsed.params.toString('hex')
+          const paramsHex: string = tx.parsed.params.toString('hex')
           const dataHex: Hex = `0x${paramsHex}`
 
-          const decodedData = decodeFunctionData({abi, data: dataHex});
+          const decodedData = decodeFunctionData({ abi, data: dataHex })
           const [clientAddressData, amount] = decodedData.args
           const address = newFromString(clientAddress)
           const addressHex: Hex = `0x${Buffer.from(address.bytes).toString('hex')}`
-          return clientAddressData === addressHex &&
-            amount === BigInt(bytesDatacap)
+          return (
+            clientAddressData === addressHex && amount === BigInt(bytesDatacap)
+          )
         })
       }
       return pendingForClient.length > 0 ? pendingForClient.at(-1) : false
@@ -242,7 +261,7 @@ const useWallet = (): WalletState => {
         abi,
         args: [addressHex, BigInt(bytesDatacap)],
       })
-      const calldata = Buffer.from(calldataHex.substring(2), 'hex');
+      const calldata = Buffer.from(calldataHex.substring(2), 'hex')
       return wallet.api.multisigEvmInvoke(
         multisigAddress,
         contractAddress,
@@ -327,6 +346,7 @@ const useWallet = (): WalletState => {
     message,
     setMessage,
     accounts,
+    loadMoreAccounts,
   }
 }
 

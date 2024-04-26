@@ -1,10 +1,10 @@
+import { requestTypeColor, stateColor } from '@/lib/constants'
+import { shortenUrl } from '@/lib/utils'
 import { type Application } from '@/type'
 import Link from 'next/link'
 import React from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
-import { shortenUrl } from '@/lib/utils'
-import { requestTypeColor, stateColor } from '@/lib/constants'
 
 interface Props {
   application: Application

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import AccountSelectionDialog from '@/components/ui/ledger-account-select' // Adjust the import path as needed
+import AccountSelectionDialog from '@/components/ui/ledger-account-select'
 import { Modal } from '@/components/ui/modal'
 import ProgressBar from '@/components/ui/progress-bar'
 import { Spinner } from '@/components/ui/spinner'
@@ -15,7 +15,13 @@ import {
   calculateDatacap,
   getLastDatacapAllocation,
 } from '@/lib/utils'
-import { type Allocation, LDNActorType, type Application } from '@/type'
+import { LDNActorType, type Allocation, type Application } from '@/type'
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material'
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -30,6 +36,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
+
 interface ComponentProps {
   application: Application
   repo: string
@@ -59,7 +66,10 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     application,
     isApiCalling,
     setApiCalling,
+    mutationDecline,
+    mutationRequestInfo,
     mutationTrigger,
+    mutationApproveChanges,
     mutationProposal,
     mutationApproval,
     walletError,
@@ -67,6 +77,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setActiveAccountIndex,
     accounts,
     message,
+    loadMoreAccounts,
   } = useApplicationActions(initialApplication, repo, owner)
   const [buttonText, setButtonText] = useState('')
   const [modalMessage, setModalMessage] = useState<string | null>(null)
@@ -80,8 +91,24 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   )
   const [isSelectAccountModalOpen, setIsSelectAccountModalOpen] =
     useState(false)
-  const [allocationType, setAllocationType] = useState<string>('')
-  const [allocationAmount, setAllocationAmount] = useState<string>('')
+
+  const [additionalInfoConfig, setAdditionalInfoConfig] = useState<{
+    message: string
+    isDialogOpen: boolean
+  }>({
+    message: '',
+    isDialogOpen: false,
+  })
+
+  const [allocationAmountConfig, setAllocationAmountConfig] = useState<{
+    amount: string
+    allocationType: string
+    isDialogOpen: boolean
+  }>({
+    amount: '',
+    allocationType: '',
+    isDialogOpen: false,
+  })
 
   const router = useRouter()
 
@@ -108,12 +135,6 @@ const AppInfoCard: React.FC<ComponentProps> = ({
         const usedDatacap =
           allocationAmount < allowance ? 0 : allocationAmount - allowance
         const progressPercentage = (usedDatacap / allocationAmount) * 100
-        console.log({
-          allowance,
-          allocationAmount,
-          usedDatacap,
-          progressPercentage,
-        })
 
         setProgress(progressPercentage)
         setIsProgressBarLoading(false)
@@ -142,10 +163,12 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     const ghUserName = session.data.user.githubUsername
     const currentAllocator = allocators.find((e) => e.repo === repo)
     setSelectedAllocator(currentAllocator)
-    if (currentAllocator?.verifiers_gh_handles.includes(ghUserName)) {
+    if (
+      currentAllocator?.verifiers_gh_handles.includes(ghUserName.toLowerCase())
+    ) {
       setCurrentActorType(LDNActorType.Verifier)
     }
-  }, [session.data?.user?.githubUsername, allocators])
+  }, [session.data?.user?.githubUsername, allocators, repo])
 
   /**
    * Handles the mutation error event.
@@ -180,11 +203,18 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       const currentAllocator = allocators.find((e) => e.repo === repo)
       if (!currentAllocator) return
       setIsWalletConnecting(true)
+
+      if (accounts.length) {
+        setIsSelectAccountModalOpen(true)
+        setIsWalletConnecting(false)
+        return
+      }
+
       const { multisig_address: multisigAddress } = currentAllocator
-      const accounts = multisigAddress
+      const newAccounts = multisigAddress
         ? await initializeWallet(multisigAddress)
         : await initializeWallet()
-      if (accounts.length) setIsSelectAccountModalOpen(true)
+      if (newAccounts.length) setIsSelectAccountModalOpen(true)
       setIsWalletConnecting(false)
       return
     } catch (error) {
@@ -192,6 +222,13 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     }
     setIsWalletConnecting(false)
     setWalletConnected(false)
+  }
+
+  /**
+   * Handles Load more accounts event. This function is called when the user clicks the Load more button.
+   */
+  const handleLoadMore = async (): Promise<void> => {
+    await loadMoreAccounts(5)
   }
 
   /**
@@ -210,7 +247,13 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     switch (application.Lifecycle.State) {
       case 'Submitted':
-        setButtonText('Complete governance review')
+      case 'AdditionalInfoRequired':
+      case 'AdditionalInfoSubmitted':
+        setButtonText('Complete verifier review')
+        break
+
+      case 'ChangesRequested':
+        setButtonText('Approve changes')
         break
 
       case 'ReadyToSign':
@@ -263,26 +306,42 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     try {
       switch (application.Lifecycle.State) {
         case 'Submitted':
+        case 'AdditionalInfoRequired':
+        case 'AdditionalInfoSubmitted':
           if (userName != null) {
-            const validatedAllocationAmount = validateDatacap(
-              allocationAmount,
-              application.Datacap['Total Requested Amount'],
-            )
-
-            if (!validatedAllocationAmount) {
-              setApiCalling(false)
-              return
-            }
-
-            await mutationTrigger.mutateAsync({
-              userName,
-              allocationAmount: validatedAllocationAmount,
+            setAllocationAmountConfig((prev) => {
+              return {
+                ...prev,
+                amount: '',
+                isDialogOpen: true,
+              }
             })
           }
           break
+
+        case 'ChangesRequested':
+          if (userName != null) {
+            await mutationApproveChanges.mutateAsync({
+              userName,
+            })
+          }
+          break
+
         case 'ReadyToSign':
           if (requestId != null && userName != null) {
-            await mutationProposal.mutateAsync({ requestId, userName })
+            if (application['Allocation Requests'].length > 1) {
+              setAllocationAmountConfig((prev) => {
+                return {
+                  ...prev,
+                  isDialogOpen: true,
+                }
+              })
+            } else {
+              await mutationProposal.mutateAsync({
+                requestId,
+                userName,
+              })
+            }
           }
           break
         case 'StartSignDatacap':
@@ -322,6 +381,120 @@ const AppInfoCard: React.FC<ComponentProps> = ({
     setApiCalling(false)
   }
 
+  const declineApplication = async (): Promise<void> => {
+    setApiCalling(true)
+    const userName = session.data?.user?.githubUsername
+    if (!userName) return
+    try {
+      await mutationDecline.mutateAsync({
+        userName,
+      })
+    } catch (error) {
+      handleMutationError(error as Error)
+    }
+    router.push(`/`)
+  }
+
+  const handleAdditionalInfoClose = async (
+    shouldSubmit: boolean,
+  ): Promise<void> => {
+    if (!shouldSubmit) {
+      setAdditionalInfoConfig({
+        isDialogOpen: false,
+        message: '',
+      })
+      return
+    }
+
+    if (!additionalInfoConfig.message) {
+      toast.error('Please provide a message')
+      return
+    }
+    setApiCalling(true)
+    const userName = session.data?.user?.githubUsername
+    if (!userName) return
+    try {
+      await mutationRequestInfo.mutateAsync({
+        userName,
+        additionalInfoMessage: additionalInfoConfig.message,
+      })
+    } catch (error) {
+      handleMutationError(error as Error)
+    }
+    setApiCalling(false)
+    setAdditionalInfoConfig({
+      isDialogOpen: false,
+      message: '',
+    })
+  }
+
+  const handleAllocationAmountClose = async (
+    shouldSubmit: boolean,
+  ): Promise<void> => {
+    if (!shouldSubmit) {
+      setAllocationAmountConfig((prev) => ({
+        ...prev,
+        isDialogOpen: false,
+        amount: '',
+      }))
+      return
+    }
+    setApiCalling(true)
+    const userName = session.data?.user?.githubUsername
+    if (!userName) return
+    const validatedAllocationAmount = validateAndReturnDatacap(
+      allocationAmountConfig.amount,
+      application.Datacap['Total Requested Amount'],
+    )
+
+    if (!validatedAllocationAmount) {
+      setApiCalling(false)
+      return
+    }
+
+    if (application.Lifecycle.State === 'ReadyToSign') {
+      const requestId = application['Allocation Requests'].find(
+        (alloc) => alloc.Active,
+      )?.ID
+      if (!requestId) return
+
+      setAllocationAmountConfig((prev) => ({
+        ...prev,
+        isDialogOpen: false,
+      }))
+
+      await mutationProposal.mutateAsync({
+        requestId,
+        userName,
+        allocationAmount: validatedAllocationAmount,
+      })
+    } else {
+      await mutationTrigger.mutateAsync({
+        userName,
+        allocationAmount: validatedAllocationAmount,
+      })
+    }
+
+    setApiCalling(false)
+  }
+
+  useEffect(() => {
+    // if not the first allocation, prefill the amount with ssa bot suggested value
+    if (
+      application.Lifecycle.State === 'ReadyToSign' &&
+      application['Allocation Requests'].length > 1
+    ) {
+      setAllocationAmountConfig((prev) => ({
+        allocationType: 'manual',
+        amount:
+          application['Allocation Requests'].find((e) => e.Active)?.[
+            'Allocation Amount'
+          ] ?? '',
+        isDialogOpen: false,
+      }))
+    }
+  }, [application])
+
   const stateLabel =
     stateMapping[application.Lifecycle.State as keyof typeof stateMapping] ??
     application.Lifecycle.State
@@ -337,7 +510,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       : 'bg-gray-100' // Fondo gris claro para filas impares
   }
 
-  const validateDatacap = (
+  const validateAndReturnDatacap = (
     datacap: string,
     totalDatacap: string,
   ): string | undefined => {
@@ -360,6 +533,9 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       <AccountSelectionDialog
         open={isSelectAccountModalOpen}
         accounts={accounts}
+        onLoadMore={async () => {
+          await handleLoadMore()
+        }}
         onClose={() => {
           setIsSelectAccountModalOpen(false)
         }}
@@ -396,79 +572,87 @@ const AppInfoCard: React.FC<ComponentProps> = ({
       )}
 
       <Card className="bg-gray-50 p-4 rounded-lg shadow-lg">
-        <CardHeader className="border-b pb-2 mb-4">
-          <h2 className="text-xl font-bold">Client Info</h2>
-        </CardHeader>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <CardHeader className="border-b pb-2 mb-4">
+              <h2 className="text-xl font-bold">Client Info</h2>
+            </CardHeader>
 
-        <CardContent className="grid text-sm mb-4">
-          {[
-            ['Name', application.Client.Name],
-            ['Region', application.Client.Region],
-            ['Industry', application.Client.Industry],
-            ['Website', application.Client.Website],
-            ['Social', application.Client['Social Media']],
-            ['Social Media Type', application.Client['Social Media Type']],
-            ['Address', application.Lifecycle['On Chain Address']],
-          ].map(([label, value], idx) => {
-            const rowStyles = getRowStyles(idx)
-            return (
-              <div
-                key={label}
-                className={`flex items-center p-2 justify-between ${rowStyles}`}
-              >
-                <p className="text-gray-600">{label}</p>
-                {label === 'Address' ? (
-                  <a
-                    href={`https://filfox.info/en/address/${value}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gray-800"
+            <CardContent className="grid text-sm mb-4">
+              {[
+                ['Name', application.Client.Name],
+                ['Region', application.Client.Region],
+                ['Industry', application.Client.Industry],
+                ['Website', application.Client.Website],
+                ['Social', application.Client['Social Media']],
+                ['Social Media Type', application.Client['Social Media Type']],
+                ['Address', application.Lifecycle['On Chain Address']],
+              ].map(([label, value], idx) => {
+                const rowStyles = getRowStyles(idx)
+                return (
+                  <div
+                    key={label}
+                    className={`flex items-center p-2 justify-between ${rowStyles}`}
                   >
-                    {value}
-                  </a>
-                ) : (
-                  <p className="font-medium text-gray-800">{value}</p>
-                )}
-              </div>
-            )
-          })}
-        </CardContent>
-        <CardHeader className="border-b pb-2 mb-4">
-          <h2 className="text-xl font-bold">Datacap Info</h2>
-        </CardHeader>
+                    <p className="text-gray-600">{label}</p>
+                    {label === 'Address' ? (
+                      <a
+                        href={`https://filfox.info/en/address/${value}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-gray-800"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      <p className="font-medium text-gray-800">{value}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </CardContent>
+          </div>
+          <div className="flex-1">
+            <CardHeader className="border-b pb-2 mb-4">
+              <h2 className="text-xl font-bold">Datacap Info</h2>
+            </CardHeader>
 
-        <CardContent className="grid text-sm">
-          {[
-            ['Status', stateLabel],
-            ['Data Type', application.Datacap['Data Type']],
-            [
-              'Total Requested Amount',
-              application.Datacap['Total Requested Amount'],
-            ],
-            ['Single Size Dataset', application.Datacap['Single Size Dataset']],
-            ['Replicas', application.Datacap.Replicas.toString()],
-            ['Weekly Allocation', application.Datacap['Weekly Allocation']],
-          ].map(([label, value], idx) => {
-            const rowStyles = getRowStyles(idx)
-            return (
-              <div
-                key={idx}
-                className={`flex items-center p-2 justify-between ${rowStyles}`}
-              >
-                <p className="text-gray-600">{label}</p>
-                {label === 'Status' ? (
-                  <span
-                    className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+            <CardContent className="grid text-sm">
+              {[
+                ['Status', stateLabel],
+                [
+                  'Total Requested Amount',
+                  application.Datacap['Total Requested Amount'],
+                ],
+                [
+                  'Single Size Dataset',
+                  application.Datacap['Single Size Dataset'],
+                ],
+                ['Replicas', application.Datacap.Replicas.toString()],
+                ['Weekly Allocation', application.Datacap['Weekly Allocation']],
+              ].map(([label, value], idx) => {
+                const rowStyles = getRowStyles(idx)
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center p-2 justify-between ${rowStyles}`}
                   >
-                    {value}
-                  </span>
-                ) : (
-                  <p className="font-medium text-gray-800">{value}</p>
-                )}
-              </div>
-            )
-          })}
-        </CardContent>
+                    <p className="text-gray-600">{label}</p>
+                    {label === 'Status' ? (
+                      <span
+                        className={`ml-2 px-2 py-1 rounded text-xs ${stateClass}`}
+                      >
+                        {value}
+                      </span>
+                    ) : (
+                      <p className="font-medium text-gray-800">{value}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </CardContent>
+          </div>
+        </div>
 
         <CardContent>
           {lastAllocation !== undefined && (
@@ -480,149 +664,321 @@ const AppInfoCard: React.FC<ComponentProps> = ({
           )}
         </CardContent>
 
-        {application?.Lifecycle?.State !== 'Granted' &&
-          session?.data?.user?.name !== undefined && (
-            <CardFooter className="flex flex-col items-end border-t pt-4 mt-4 justify-center gap-3">
-              {application?.Lifecycle?.State === 'Submitted' && (
-                <div className="flex gap-3 items-center">
-                  <FormControl>
-                    <FormLabel id="demo-controlled-radio-buttons-group">
-                      Allocation Amount Type
-                    </FormLabel>
-                    <RadioGroup
-                      aria-labelledby="demo-controlled-radio-buttons-group"
-                      value={allocationType}
-                      onChange={(e) => {
-                        if (e.target.value !== 'manual') {
-                          setAllocationAmount('')
+        {LDNActorType.Verifier === currentActorType ? (
+          <div>
+            {application?.Lifecycle?.State !== 'Granted' &&
+              session?.data?.user?.name !== undefined && (
+                <CardFooter className="flex flex-col items-end border-t pt-4 pb-2 mt-4 justify-center gap-3">
+                  {buttonText &&
+                    (walletConnected ||
+                      [
+                        'Submitted',
+                        'AdditionalInfoRequired',
+                        'AdditionalInfoSubmitted',
+                        'ChangesRequested',
+                      ].includes(application?.Lifecycle?.State)) && (
+                      <div className="flex justify-end gap-2 pb-4">
+                        {[
+                          'Submitted',
+                          'AdditionalInfoRequired',
+                          'AdditionalInfoSubmitted',
+                        ].includes(application?.Lifecycle?.State) && (
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => {
+                                setAdditionalInfoConfig({
+                                  isDialogOpen: true,
+                                  message: '',
+                                })
+                              }}
+                              disabled={isApiCalling}
+                              style={{
+                                width: '200px',
+                              }}
+                              className="bg-yellow-400 text-black rounded-lg px-4 py-2 hover:bg-yellow-500"
+                            >
+                              Request Additional Info
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                void declineApplication()
+                              }}
+                              disabled={isApiCalling}
+                              style={{
+                                width: '200px',
+                              }}
+                              className="bg-red-400 text-white rounded-lg px-4 py-2 hover:bg-red-600"
+                            >
+                              Decline Application
+                            </Button>
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => {
+                            void handleButtonClick()
+                          }}
+                          disabled={isApiCalling}
+                          style={{
+                            width: '200px',
+                          }}
+                          className="bg-blue-400 text-white rounded-lg px-4 py-2 hover:bg-blue-500"
+                        >
+                          {buttonText}
+                        </Button>
+                      </div>
+                    )}
+
+                  {!walletConnected &&
+                    currentActorType === LDNActorType.Verifier &&
+                    ![
+                      'Submitted',
+                      'ChangesRequested',
+                      'AdditionalInfoRequired',
+                      'AdditionalInfoSubmitted',
+                    ].includes(application?.Lifecycle?.State) && (
+                      <Button
+                        onClick={() => {
+                          void handleConnectLedger()
+                        }}
+                        disabled={
+                          isWalletConnecting ||
+                          isApiCalling ||
+                          ['Granted', 'Submitted'].includes(
+                            application.Lifecycle.State,
+                          )
                         }
-                        setAllocationType((e.target as HTMLInputElement).value)
+                        className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+                      >
+                        Connect Ledger
+                      </Button>
+                    )}
+                </CardFooter>
+              )}
+          </div>
+        ) : (
+          <CardFooter className="px-6 flex justify-end items-center w-full font-semibold text-xl italic">
+            You must be a verifier in order to perform actions on the
+            application.
+          </CardFooter>
+        )}
+      </Card>
+      <Dialog
+        open={additionalInfoConfig.isDialogOpen}
+        onClose={() => {
+          void handleAdditionalInfoClose(false)
+        }}
+        fullWidth
+      >
+        <DialogTitle>This message will be posted in the issue</DialogTitle>
+        <DialogContent
+          style={{
+            paddingTop: '8px',
+          }}
+        >
+          {(isApiCalling || isWalletConnecting) && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+              <Spinner />
+            </div>
+          )}
+          <TextField
+            fullWidth
+            multiline
+            minRows={6}
+            id="outlined-controlled"
+            label="Request additional information using this message..."
+            value={additionalInfoConfig.message}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setAdditionalInfoConfig((prev) => {
+                return {
+                  ...prev,
+                  message: event.target.value,
+                }
+              })
+            }}
+          />
+        </DialogContent>
+        <DialogActions
+          style={{
+            padding: '0 24px 20px 24px',
+          }}
+        >
+          <Button
+            disabled={isApiCalling}
+            onClick={() => {
+              void handleAdditionalInfoClose(false)
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={isApiCalling}
+            onClick={() => {
+              void handleAdditionalInfoClose(true)
+            }}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={allocationAmountConfig.isDialogOpen}
+        onClose={() => {
+          void handleAllocationAmountClose(false)
+        }}
+        fullWidth
+      >
+        <DialogTitle
+        // className='flex justify-center'
+        >
+          Fill DataCap Amount for current allocation
+        </DialogTitle>
+        <DialogContent
+          style={{
+            paddingTop: '8px',
+          }}
+        >
+          {(isApiCalling || isWalletConnecting) && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+              <Spinner />
+            </div>
+          )}
+          <div className="flex gap-3 items-center">
+            <FormControl>
+              <FormLabel id="demo-controlled-radio-buttons-group">
+                Allocation Amount Type
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                value={allocationAmountConfig.allocationType}
+                onChange={(e) => {
+                  if (e.target.value !== 'manual') {
+                    setAllocationAmountConfig({
+                      ...allocationAmountConfig,
+                      amount: '',
+                    })
+                  }
+                  setAllocationAmountConfig((prev) => ({
+                    ...prev,
+                    allocationType: (e.target as HTMLInputElement).value,
+                  }))
+                }}
+              >
+                <FormControlLabel
+                  value={
+                    allocation?.allocation_amount_type
+                      ? allocation.allocation_amount_type
+                      : 'fixed'
+                  }
+                  control={<Radio />}
+                  label={
+                    allocation?.allocation_amount_type
+                      ? allocation.allocation_amount_type
+                          .charAt(0)
+                          .toUpperCase() +
+                        allocation.allocation_amount_type.slice(1)
+                      : 'Fixed'
+                  }
+                />
+                <FormControlLabel
+                  value="manual"
+                  control={<Radio />}
+                  label="Manual"
+                />
+              </RadioGroup>
+            </FormControl>
+            <div>
+              {!allocationAmountConfig.allocationType ||
+              allocationAmountConfig.allocationType === 'percentage' ||
+              allocationAmountConfig.allocationType === 'fixed' ? (
+                <Box sx={{ width: 230 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Amount</InputLabel>
+                    <Select
+                      disabled={!allocationAmountConfig.allocationType}
+                      value={allocationAmountConfig.amount}
+                      label="Allocation Amount"
+                      onChange={(e: SelectChangeEvent) => {
+                        setAllocationAmountConfig((prev) => ({
+                          ...prev,
+                          amount: e.target.value,
+                        }))
                       }}
                     >
-                      <FormControlLabel
-                        value={
-                          allocation?.allocation_amount_type
-                            ? allocation.allocation_amount_type
-                            : 'fixed'
-                        }
-                        control={<Radio />}
-                        label={
-                          allocation?.allocation_amount_type
-                            ? allocation.allocation_amount_type
-                                .charAt(0)
-                                .toUpperCase() +
-                              allocation.allocation_amount_type.slice(1)
-                            : 'Fixed'
-                        }
-                      />
-                      <FormControlLabel
-                        value="manual"
-                        control={<Radio />}
-                        label="Manual"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                  <div>
-                    {!allocationType ||
-                    allocationType === 'percentage' ||
-                    allocationType === 'fixed' ? (
-                      <Box sx={{ width: 230 }}>
-                        <FormControl fullWidth>
-                          <InputLabel>Amount</InputLabel>
-                          <Select
-                            disabled={!allocationType}
-                            value={allocationAmount}
-                            label="Allocation Amount"
-                            onChange={(e: SelectChangeEvent) => {
-                              setAllocationAmount(e.target.value)
-                            }}
+                      {(allocation?.allocation_amount_type
+                        ? allocation.allocation_amount_quantity_options
+                        : ['1TiB', '5TiB', '50TiB', '100TiB', '1PiB']
+                      ).map((e) => {
+                        return (
+                          <MenuItem
+                            key={e}
+                            value={
+                              allocationAmountConfig.allocationType ===
+                              'percentage'
+                                ? calculateDatacap(
+                                    e,
+                                    application.Datacap[
+                                      'Total Requested Amount'
+                                    ],
+                                  )
+                                : e
+                            }
                           >
-                            {(allocation?.allocation_amount_type
-                              ? allocation.allocation_amount_quantity_options
-                              : ['1TiB', '5TiB', '50TiB', '100TiB', '1PiB']
-                            ).map((e) => {
-                              return (
-                                <MenuItem
-                                  key={e}
-                                  value={
-                                    allocationType === 'percentage'
-                                      ? calculateDatacap(
-                                          e,
-                                          application.Datacap[
-                                            'Total Requested Amount'
-                                          ],
-                                        )
-                                      : e
-                                  }
-                                >
-                                  {e}
-                                  {allocationType === 'percentage'
-                                    ? `% - ${calculateDatacap(e, application.Datacap['Total Requested Amount'])}`
-                                    : ''}
-                                </MenuItem>
-                              )
-                            })}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    ) : (
-                      <Box
-                        sx={{
-                          width: 230,
-                        }}
-                      >
-                        <TextField
-                          id="outlined-controlled"
-                          label="Amount"
-                          disabled={!allocationType}
-                          value={allocationAmount}
-                          onChange={(
-                            event: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setAllocationAmount(event.target.value)
-                          }}
-                        />
-                      </Box>
-                    )}
-                  </div>
-                </div>
+                            {e}
+                            {allocationAmountConfig.allocationType ===
+                            'percentage'
+                              ? `% - ${calculateDatacap(
+                                  e,
+                                  application.Datacap['Total Requested Amount'],
+                                )}`
+                              : ''}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
+                  </FormControl>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    width: 230,
+                  }}
+                >
+                  <TextField
+                    id="outlined-controlled"
+                    label="Amount"
+                    disabled={!allocationAmountConfig.allocationType}
+                    value={allocationAmountConfig.amount}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setAllocationAmountConfig((prev) => ({
+                        ...prev,
+                        amount: event.target.value,
+                      }))
+                    }}
+                  />
+                </Box>
               )}
-              {buttonText &&
-                (walletConnected ||
-                  application.Lifecycle.State === 'Submitted') && (
-                  <Button
-                    onClick={() => void handleButtonClick()}
-                    disabled={
-                      isApiCalling ||
-                      (application.Lifecycle.State === 'Submitted' &&
-                        !allocationAmount)
-                    }
-                    className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
-                  >
-                    {buttonText}
-                  </Button>
-                )}
-
-              {!walletConnected &&
-                currentActorType === LDNActorType.Verifier &&
-                application?.Lifecycle?.State !== 'Submitted' && (
-                  <Button
-                    onClick={() => void handleConnectLedger()}
-                    disabled={
-                      isWalletConnecting ||
-                      isApiCalling ||
-                      ['Granted', 'Submitted'].includes(
-                        application.Lifecycle.State,
-                      )
-                    }
-                    className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
-                  >
-                    Connect Ledger
-                  </Button>
-                )}
-            </CardFooter>
-          )}
-      </Card>
+            </div>
+          </div>
+        </DialogContent>
+        <DialogActions
+          style={{
+            padding: '0 24px 20px 24px',
+          }}
+        >
+          <Button
+            disabled={isApiCalling}
+            onClick={() => void handleAllocationAmountClose(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={isApiCalling || !allocationAmountConfig.amount}
+            onClick={() => void handleAllocationAmountClose(true)}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
