@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   useQueryClient,
   useMutation,
@@ -10,7 +10,8 @@ import {
   postApplicationApproval,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
-import { type Application } from '@/type'
+import { type Application, AppMode } from '@/type'
+import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ApplicationActions {
   application: Application
@@ -72,6 +73,22 @@ const useApplicationActions = (
     message,
     accounts,
   } = useWallet()
+  const { selectedAllocator } = useAllocator()
+
+  const appMode: AppMode = useMemo(() => {
+    if (
+      !!selectedAllocator &&
+      typeof selectedAllocator !== 'string' &&
+      selectedAllocator?.tooling
+      .split(', ')
+      .includes('smart_contract_allocator') &&
+      !!selectedAllocator?.address
+    ) {
+      return 'v2'
+    } else {
+      return 'legacy'
+    }
+  }, [selectedAllocator])
 
   /**
    * Updates the application cache with the latest data from the API.
@@ -137,6 +154,13 @@ const useApplicationActions = (
     },
   )
 
+  const getClientAddress = (): string => {
+    return (
+      (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
+      initialApplication.Lifecycle['On Chain Address'].substring(1)
+    )
+  }
+
   /**
    * Mutation function to handle the proposal of an application.
    * It makes an API call to propose the application and updates the cache on success.
@@ -152,21 +176,28 @@ const useApplicationActions = (
     unknown
   >(
     async ({ requestId, userName }) => {
-      const clientAddress =
-        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
-        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const clientAddress = getClientAddress()
       const datacap = initialApplication['Allocation Requests'].find(
         (alloc) => alloc.Active,
       )?.['Allocation Amount']
 
       if (datacap == null) throw new Error('No active allocation found')
 
-      const proposalTx = await getProposalTx(clientAddress, datacap)
+      const proposalTx = await getProposalTx(clientAddress, datacap, appMode)
+
       if (proposalTx !== false) {
         throw new Error('This datacap allocation is already proposed')
       }
 
-      const messageCID = await sendProposal(clientAddress, datacap)
+      const messageCID = await sendProposal({
+        appMode,
+        contractAddress:
+          typeof selectedAllocator !== 'string'
+            ? selectedAllocator?.address ?? ''
+            : '',
+        clientAddress,
+        datacap,
+      })
 
       if (messageCID == null) {
         throw new Error(
@@ -210,16 +241,14 @@ const useApplicationActions = (
     unknown
   >(
     async ({ requestId, userName }) => {
-      const clientAddress =
-        (process.env.NEXT_PUBLIC_MODE === 'development' ? 't' : 'f') +
-        initialApplication.Lifecycle['On Chain Address'].substring(1)
+      const clientAddress = getClientAddress()
       const datacap = initialApplication['Allocation Requests'].find(
         (alloc) => alloc.Active,
       )?.['Allocation Amount']
 
       if (datacap == null) throw new Error('No active allocation found')
 
-      const proposalTx = await getProposalTx(clientAddress, datacap)
+      const proposalTx = await getProposalTx(clientAddress, datacap, appMode)
 
       if (proposalTx === false) {
         throw new Error(

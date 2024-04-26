@@ -115,6 +115,10 @@ export interface Allocator {
   installation_id: string
   multisig_address: string
   verifiers_gh_handles: string
+  multisig_threshold: number
+  allocation_amount_type: string | null
+  address: string
+  tooling: string
 }
 
 export interface ByteConverterAutoscaleOptions {
@@ -128,4 +132,13 @@ export interface ByteConverterAutoscaleOptions {
   preferOppositeUnit: boolean
   // eslint-disable-next-line @typescript-eslint/ban-types
   handler: (curDataFormat: string, isUppingDataFormat: boolean) => {}
+}
+
+export type AppMode = 'legacy' | 'v2'
+
+export interface SendProposalProps {
+  appMode: AppMode
+  contractAddress: string
+  clientAddress: string
+  datacap: string
 }
