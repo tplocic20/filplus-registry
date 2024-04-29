@@ -61,7 +61,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
   allocation,
 }) => {
   const session = useSession()
-  const { allocators } = useAllocator()
+  const { allocators, setSelectedAllocator } = useAllocator()
   const {
     application,
     isApiCalling,
@@ -162,6 +162,7 @@ const AppInfoCard: React.FC<ComponentProps> = ({
 
     const ghUserName = session.data.user.githubUsername
     const currentAllocator = allocators.find((e) => e.repo === repo)
+    setSelectedAllocator(currentAllocator)
     if (
       currentAllocator?.verifiers_gh_handles.includes(ghUserName.toLowerCase())
     ) {

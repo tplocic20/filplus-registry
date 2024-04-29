@@ -13,6 +13,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.12",
+    "@glif/filecoin-address": "^3.0.4",
     "@keyko-io/filecoin-verifier-tools": "^2.2.4",
     "@ledgerhq/hw-transport-webusb": "^6.27.19",
     "@mui/material": "^5.15.14",
@@ -48,6 +49,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "3.3.2",
     "tailwindcss-animate": "^1.0.6",
+    "viem": "^2.9.21",
     "webpack-node-externals": "^3.0.0"
   },
   "devDependencies": {
