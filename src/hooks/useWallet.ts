@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { LedgerWallet } from '@/lib/wallet/LedgerWallet'
 import { BurnerWallet } from '@/lib/wallet/BurnerWallet'
 import { config } from '../config'
-import { type IWallet, type SendProposalProps } from '@/type'
+import { AllocatorTypeEnum, type IWallet, type SendProposalProps } from '@/type'
 import { anyToBytes } from '@/lib/utils'
 import { newFromString } from '@glif/filecoin-address'
 import { decodeFunctionData, encodeFunctionData, parseAbi } from 'viem'
@@ -36,7 +36,7 @@ interface WalletState {
   getProposalTx: (
     clientAddress: string,
     datacap: string,
-    appMode: string,
+    allocatorType: AllocatorTypeEnum,
   ) => Promise<string | boolean>
   sendProposal: (props: SendProposalProps) => Promise<string>
   sendApproval: (txHash: string) => Promise<string>
@@ -185,7 +185,7 @@ const useWallet = (): WalletState => {
     async (
       clientAddress: string,
       datacap: string,
-      appMode: string,
+      allocatorType: AllocatorTypeEnum,
     ): Promise<string | boolean> => {
       if (wallet == null) throw new Error('No wallet initialized.')
       if (multisigAddress == null) throw new Error('Multisig address not set.')
@@ -200,7 +200,7 @@ const useWallet = (): WalletState => {
         )
       }
       let pendingForClient = null
-      if (appMode !== 'v2') {
+      if (allocatorType !== AllocatorTypeEnum.CONTRACT) {
         pendingForClient = pendingTxs?.filter(
           (tx: any) =>
             tx?.parsed?.params?.address === clientAddress &&
@@ -229,7 +229,7 @@ const useWallet = (): WalletState => {
     [wallet, multisigAddress],
   )
 
-  const sendProposalLegacy = useCallback(
+  const sendProposalDirect = useCallback(
     async (clientAddress: string, bytesDatacap: number) => {
       if (wallet == null) throw new Error('No wallet initialized.')
 
@@ -243,7 +243,7 @@ const useWallet = (): WalletState => {
     [wallet, multisigAddress, activeAccountIndex],
   )
 
-  const sendProposalV2 = useCallback(
+  const sendProposalContract = useCallback(
     async (
       clientAddress: string,
       bytesDatacap: number,
@@ -287,21 +287,30 @@ const useWallet = (): WalletState => {
       if (wallet == null) throw new Error('No wallet initialized.')
       if (multisigAddress == null) throw new Error('Multisig address not set.')
 
-      const { clientAddress, datacap, appMode, contractAddress } = props
+      const {
+        clientAddress,
+        proposalAllocationAmount,
+        allocatorType,
+        contractAddress,
+      } = props
 
       setMessage('Sending proposal...')
 
-      const bytesDatacap = Math.floor(anyToBytes(datacap))
+      const bytesDatacap = Math.floor(anyToBytes(proposalAllocationAmount))
       const messageCID =
-        appMode === 'v2'
-          ? await sendProposalV2(clientAddress, bytesDatacap, contractAddress)
-          : await sendProposalLegacy(clientAddress, bytesDatacap)
+        allocatorType === AllocatorTypeEnum.CONTRACT
+          ? await sendProposalContract(
+              clientAddress,
+              bytesDatacap,
+              contractAddress,
+            )
+          : await sendProposalDirect(clientAddress, bytesDatacap)
 
       setMessage(`Proposal sent correctly. CID: ${messageCID as string}`)
 
       return messageCID
     },
-    [wallet, multisigAddress, sendProposalV2, sendProposalLegacy],
+    [wallet, multisigAddress, sendProposalContract, sendProposalDirect],
   )
 
   /**

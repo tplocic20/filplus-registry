@@ -138,10 +138,13 @@ export interface ByteConverterAutoscaleOptions {
   handler: (curDataFormat: string, isUppingDataFormat: boolean) => {}
 }
 
-export type AppMode = 'legacy' | 'v2'
+export enum AllocatorTypeEnum {
+  DIRECT = 'direct',
+  CONTRACT = 'contract',
+}
 
 export interface SendProposalProps {
-  appMode: AppMode
+  allocatorType: AllocatorTypeEnum
   contractAddress: string
   clientAddress: string
   proposalAllocationAmount: string

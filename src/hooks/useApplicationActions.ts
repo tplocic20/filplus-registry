@@ -13,7 +13,7 @@ import {
   postAdditionalInfoRequest,
 } from '@/lib/apiClient'
 import useWallet from '@/hooks/useWallet'
-import { type Application, type AppMode } from '@/type'
+import { type Application, AllocatorTypeEnum } from '@/type'
 import { useAllocator } from '@/lib/AllocatorProvider'
 
 interface ApplicationActions {
@@ -98,7 +98,7 @@ const useApplicationActions = (
   } = useWallet()
   const { selectedAllocator } = useAllocator()
 
-  const appMode: AppMode = useMemo(() => {
+  const allocatorType: AllocatorTypeEnum = useMemo(() => {
     if (
       !!selectedAllocator &&
       typeof selectedAllocator !== 'string' &&
@@ -107,9 +107,9 @@ const useApplicationActions = (
         .includes('smart_contract_allocator') &&
       !!selectedAllocator?.address
     ) {
-      return 'v2'
+      return AllocatorTypeEnum.CONTRACT
     } else {
-      return 'legacy'
+      return AllocatorTypeEnum.DIRECT
     }
   }, [selectedAllocator])
 
@@ -322,14 +322,14 @@ const useApplicationActions = (
       const proposalTx = await getProposalTx(
         clientAddress,
         proposalAllocationAmount,
-        appMode,
+        allocatorType,
       )
       if (proposalTx !== false) {
         throw new Error('This datacap allocation is already proposed')
       }
 
       const messageCID = await sendProposal({
-        appMode,
+        allocatorType,
         contractAddress:
           typeof selectedAllocator !== 'string'
             ? selectedAllocator?.address ?? ''
@@ -388,7 +388,11 @@ const useApplicationActions = (
 
       if (datacap == null) throw new Error('No active allocation found')
 
-      const proposalTx = await getProposalTx(clientAddress, datacap, appMode)
+      const proposalTx = await getProposalTx(
+        clientAddress,
+        datacap,
+        allocatorType,
+      )
 
       if (proposalTx === false) {
         throw new Error(
